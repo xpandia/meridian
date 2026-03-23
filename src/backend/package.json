@@ -1,0 +1,17 @@
+{
+  "name": "meridian-backend",
+  "version": "1.0.0",
+  "description": "Meridian DeFi Yield Optimization API for HashKey Chain",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "ethers": "^6.13.4",
+    "express": "^4.21.1",
+    "helmet": "^8.0.0",
+    "express-rate-limit": "^7.4.1"
+  }
+}

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian — AI-Powered DeFi Yield Optimization</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0a1628;--navy-light:#0f1f38;--navy-mid:#132744;
+  --gold:#f7931a;--gold-light:#ffd700;--white:#ffffff;--white-60:rgba(255,255,255,.6);--white-30:rgba(255,255,255,.3);
+  --grad-gold:linear-gradient(135deg,#f7931a,#ffd700);
+  --grad-navy:linear-gradient(180deg,#0a1628 0%,#0f1f38 100%);
+}
+html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--white)}
+
+/* ─── DECK CONTAINER ─── */
+#deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+
+/* ─── SLIDES ─── */
+.slide{
+  position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:5vh 8vw;opacity:0;transform:translateX(60px);transition:opacity .6s ease,transform .6s ease;
+  pointer-events:none;z-index:0;background:var(--grad-navy);
+}
+.slide.active{opacity:1;transform:translateX(0);pointer-events:auto;z-index:2}
+.slide.prev{opacity:0;transform:translateX(-60px)}
+
+.slide-inner{max-width:1100px;width:100%;text-align:center}
+
+/* ─── PROGRESS BAR ─── */
+#progress{position:fixed;top:0;left:0;height:3px;background:var(--grad-gold);z-index:100;transition:width .4s ease}
+
+/* ─── SLIDE COUNTER ─── */
+#counter{position:fixed;bottom:24px;right:32px;font-size:13px;color:var(--white-30);z-index:100;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+
+/* ─── LOGO BADGE ─── */
+#logo-badge{position:fixed;top:24px;left:32px;z-index:100;font-weight:700;font-size:14px;letter-spacing:2px;text-transform:uppercase;background:var(--grad-gold);-webkit-background-clip:text;-webkit-text-fill-color:transparent;opacity:.7}
+
+/* ─── TYPOGRAPHY ─── */
+h1{font-size:clamp(2.4rem,5vw,4.2rem);font-weight:800;line-height:1.1;margin-bottom:.6em;letter-spacing:-.02em}
+h2{font-size:clamp(1.6rem,3.2vw,2.6rem);font-weight:700;line-height:1.2;margin-bottom:.5em;letter-spacing:-.015em}
+h3{font-size:clamp(1.1rem,2vw,1.5rem);font-weight:600;margin-bottom:.4em}
+p,.body{font-size:clamp(.95rem,1.4vw,1.15rem);line-height:1.65;color:var(--white-60);max-width:680px;margin:0 auto}
+.gold{background:var(--grad-gold);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.gold-solid{color:var(--gold)}
+.small{font-size:.85rem;color:var(--white-30)}
+.tag{display:inline-block;padding:6px 18px;border:1px solid var(--gold);border-radius:999px;font-size:.75rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:1.5em}
+.quote{font-style:italic;font-size:clamp(1rem,1.6vw,1.25rem);color:var(--white-60);margin-top:1.2em;max-width:600px;margin-left:auto;margin-right:auto}
+
+/* ─── STAT GRID ─── */
+.stats{display:flex;gap:2.5rem;justify-content:center;flex-wrap:wrap;margin:2rem 0}
+.stat{text-align:center}
+.stat-val{font-size:clamp(2rem,4vw,3.4rem);font-weight:800;background:var(--grad-gold);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
+.stat-label{font-size:.8rem;color:var(--white-30);margin-top:.3em;text-transform:uppercase;letter-spacing:1px}
+
+/* ─── PAIN CARDS ─── */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;margin:2rem 0;text-align:left}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:1.8rem;transition:border-color .3s}
+.card:hover{border-color:var(--gold)}
+.card h3{font-size:1rem;color:var(--gold-light);margin-bottom:.5rem}
+.card p{font-size:.88rem;color:var(--white-60);line-height:1.55}
+
+/* ─── STEPS ─── */
+.steps{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin:2rem 0}
+.step{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:2rem 1.5rem;width:260px;text-align:center;position:relative}
+.step-num{width:44px;height:44px;border-radius:50%;background:var(--grad-gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;color:var(--navy);margin:0 auto .8rem}
+.step h3{font-size:1.05rem;margin-bottom:.4rem}
+.step p{font-size:.82rem;color:var(--white-60);line-height:1.5}
+.step-arrow{color:var(--gold);font-size:1.6rem;align-self:center;flex-shrink:0}
+
+/* ─── ARCHITECTURE ─── */
+.arch{display:flex;flex-direction:column;align-items:center;gap:.6rem;margin:1.5rem 0}
+.arch-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.8rem 2rem;font-weight:600;font-size:.9rem;min-width:220px;text-align:center}
+.arch-box.gold-border{border-color:var(--gold);color:var(--gold-light)}
+.arch-row{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+.arch-arrow{color:var(--white-30);font-size:1.2rem}
+
+/* ─── TAM/SAM/SOM ─── */
+.tam-viz{position:relative;display:flex;align-items:center;justify-content:center;margin:2rem auto;width:100%;max-width:450px;height:340px}
+.tam-circle{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;transition:transform .3s}
+.tam-circle:hover{transform:scale(1.04)}
+.tam-outer{width:320px;height:320px;background:rgba(247,147,26,.08);border:2px solid rgba(247,147,26,.3)}
+.tam-mid{width:210px;height:210px;background:rgba(247,147,26,.14);border:2px solid rgba(247,147,26,.5)}
+.tam-inner{width:110px;height:110px;background:rgba(247,147,26,.25);border:2px solid var(--gold)}
+.tam-label{font-size:.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--white-60)}
+.tam-value{font-size:1.1rem;font-weight:800;color:var(--gold-light)}
+.tam-outer .tam-value{font-size:1.3rem}
+.tam-outer .tam-label{position:absolute;top:16px}
+.tam-mid .tam-label{position:absolute;top:12px}
+
+/* ─── TABLE ─── */
+.tbl{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:.85rem;text-align:left}
+.tbl th{color:var(--gold);font-weight:600;padding:.7rem 1rem;border-bottom:1px solid rgba(255,255,255,.1);text-transform:uppercase;font-size:.72rem;letter-spacing:1px}
+.tbl td{padding:.65rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--white-60)}
+.tbl tr:hover td{color:var(--white)}
+
+/* ─── BAR CHART ─── */
+.bar-chart{display:flex;align-items:flex-end;gap:1.2rem;justify-content:center;height:200px;margin:2rem 0}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.bar{width:56px;border-radius:8px 8px 0 0;background:var(--grad-gold);transition:height 1s ease;position:relative}
+.bar-val{font-size:.75rem;font-weight:700;color:var(--gold-light)}
+.bar-label{font-size:.7rem;color:var(--white-30);text-transform:uppercase}
+
+/* ─── ROADMAP ─── */
+.roadmap{display:flex;gap:0;justify-content:center;margin:2rem 0;flex-wrap:wrap;position:relative}
+.rm-item{position:relative;padding:1.5rem;text-align:center;flex:1;min-width:180px;max-width:240px}
+.rm-item::before{content:'';position:absolute;top:40px;left:0;right:0;height:2px;background:rgba(255,255,255,.08)}
+.rm-item:first-child::before{left:50%}
+.rm-item:last-child::before{right:50%}
+.rm-dot{width:16px;height:16px;border-radius:50%;background:var(--grad-gold);margin:0 auto .8rem;position:relative;z-index:2}
+.rm-time{font-size:.7rem;color:var(--gold);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:.4rem}
+.rm-title{font-size:.95rem;font-weight:700;margin-bottom:.3rem}
+.rm-desc{font-size:.78rem;color:var(--white-60);line-height:1.45}
+
+/* ─── COMP GRID ─── */
+.comp-grid{overflow-x:auto;margin:1.5rem 0}
+.comp-grid table{border-collapse:collapse;width:100%;font-size:.78rem;min-width:640px}
+.comp-grid th,.comp-grid td{padding:.6rem .7rem;text-align:center;border-bottom:1px solid rgba(255,255,255,.04)}
+.comp-grid th{color:var(--gold);font-size:.68rem;text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+.comp-grid th:first-child,.comp-grid td:first-child{text-align:left;font-weight:600;color:var(--white)}
+.comp-grid .check{color:#4ade80;font-weight:700}
+.comp-grid .cross{color:rgba(255,255,255,.2)}
+.comp-highlight{background:rgba(247,147,26,.08)}
+
+/* ─── TEAM ─── */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.2rem;margin:2rem 0}
+.team-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:1.5rem;text-align:center}
+.team-icon{width:52px;height:52px;border-radius:50%;background:var(--grad-gold);display:flex;align-items:center;justify-content:center;margin:0 auto .8rem;font-size:1.4rem}
+.team-role{font-size:.88rem;font-weight:700;margin-bottom:.3rem}
+.team-focus{font-size:.78rem;color:var(--white-60);line-height:1.45}
+
+/* ─── ASK SECTION ─── */
+.ask-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin:2rem 0;text-align:left}
+@media(max-width:700px){.ask-grid{grid-template-columns:1fr}}
+.ask-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:1.8rem}
+.ask-box h3{color:var(--gold-light);margin-bottom:.8rem;font-size:1rem}
+.ask-box ul{list-style:none;padding:0}
+.ask-box li{padding:.4rem 0;font-size:.88rem;color:var(--white-60);line-height:1.5;position:relative;padding-left:1.2rem}
+.ask-box li::before{content:'';position:absolute;left:0;top:.65rem;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+
+/* ─── DONUT CHART ─── */
+.donut-wrap{display:flex;align-items:center;justify-content:center;gap:2.5rem;margin:1.5rem 0;flex-wrap:wrap}
+.donut-svg{width:180px;height:180px}
+.donut-legend{text-align:left}
+.donut-legend-item{display:flex;align-items:center;gap:.5rem;margin:.35rem 0;font-size:.8rem;color:var(--white-60)}
+.donut-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ─── CTA PULSE ─── */
+.cta-btn{display:inline-block;padding:14px 40px;border-radius:999px;background:var(--grad-gold);color:var(--navy);font-weight:700;font-size:1rem;letter-spacing:.5px;cursor:pointer;border:none;margin-top:1.5rem;transition:transform .2s,box-shadow .2s}
+.cta-btn:hover{transform:scale(1.05);box-shadow:0 0 40px rgba(247,147,26,.3)}
+
+/* ─── SPEAKER NOTES ─── */
+#notes-panel{position:fixed;bottom:0;left:0;right:0;background:rgba(10,22,40,.96);border-top:1px solid rgba(255,255,255,.08);padding:16px 32px;z-index:200;transform:translateY(100%);transition:transform .3s;font-size:.82rem;color:var(--white-60);max-height:25vh;overflow-y:auto}
+#notes-panel.show{transform:translateY(0)}
+#notes-panel h4{color:var(--gold);font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.5rem}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.slide.active .anim{animation:fadeUp .7s ease both}
+.slide.active .anim-d1{animation-delay:.1s}
+.slide.active .anim-d2{animation-delay:.2s}
+.slide.active .anim-d3{animation-delay:.3s}
+.slide.active .anim-d4{animation-delay:.4s}
+.slide.active .anim-d5{animation-delay:.5s}
+.slide.active .anim-d6{animation-delay:.6s}
+
+/* ─── PARTICLE BG FOR TITLE ─── */
+#particles{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#particles span{position:absolute;width:2px;height:2px;border-radius:50%;background:var(--gold);opacity:.2;animation:float 8s infinite ease-in-out}
+@keyframes float{0%,100%{transform:translateY(0) translateX(0)}25%{transform:translateY(-30px) translateX(10px)}50%{transform:translateY(-15px) translateX(-10px)}75%{transform:translateY(-40px) translateX(5px)}}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:768px){
+  .slide{padding:4vh 5vw}
+  .stats{gap:1.5rem}
+  .steps{flex-direction:column;align-items:center}
+  .step-arrow{display:none}
+  .tam-viz{height:280px}
+  .tam-outer{width:250px;height:250px}
+  .tam-mid{width:160px;height:160px}
+  .tam-inner{width:90px;height:90px}
+  .bar-chart{height:160px}
+  .bar{width:40px}
+  .roadmap{flex-direction:column;align-items:center}
+  .rm-item::before{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="logo-badge">Meridian</div>
+<div id="counter"></div>
+
+<!-- ═══════════════════ SLIDE 1: TITLE ═══════════════════ -->
+<div id="deck">
+<div class="slide active" data-notes="Open with the vision. Pause after the tagline. Let it breathe.">
+  <div id="particles"></div>
+  <div class="slide-inner" style="position:relative;z-index:1">
+    <div class="anim"><span class="tag">HashKey Chain Horizon Hackathon</span></div>
+    <h1 class="anim anim-d1"><span class="gold">Meridian</span></h1>
+    <p class="anim anim-d2" style="font-size:clamp(1.1rem,1.8vw,1.4rem);color:var(--white-60);margin-bottom:1.5em">
+      One deposit. Maximum yield.<br>Institutional intelligence.
+    </p>
+    <p class="quote anim anim-d3">"What if every person on earth had access to the same yield strategies as a crypto hedge fund?"</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 2: PROBLEM ═══════════════════ -->
+<div class="slide" data-notes="Hit the pain hard. $100B locked, yet retail captures less than half. That's the canyon.">
+  <div class="slide-inner">
+    <h2 class="anim">DeFi was built for engineers,<br><span class="gold">not for people.</span></h2>
+    <div class="stats anim anim-d1">
+      <div class="stat"><div class="stat-val counter" data-target="100" data-suffix="B+">0</div><div class="stat-label">Locked in DeFi</div></div>
+      <div class="stat"><div class="stat-val counter" data-target="50" data-suffix="%">0</div><div class="stat-label">Yield left on table</div></div>
+      <div class="stat"><div class="stat-val counter" data-target="45" data-suffix=" days">0</div><div class="stat-label">Avg. rebalance time</div></div>
+    </div>
+    <div class="cards anim anim-d2">
+      <div class="card"><h3>Information Asymmetry</h3><p>Institutions run quantitative models. Retail users guess.</p></div>
+      <div class="card"><h3>Capital Inefficiency</h3><p>Funds sit idle in one pool while better opportunities emerge every block.</p></div>
+      <div class="card"><h3>Risk Blindness</h3><p>67% of users cannot assess smart contract risk, impermanent loss, or protocol solvency.</p></div>
+    </div>
+    <p class="small anim anim-d3">The result: retail users leave 40-60% of potential yield on the table. That is not a gap. That is a canyon.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 3: SOLUTION ═══════════════════ -->
+<div class="slide" data-notes="Three simple steps. Emphasize simplicity. This is the Wealthfront for DeFi moment.">
+  <div class="slide-inner">
+    <span class="tag anim">The Solution</span>
+    <h2 class="anim anim-d1">AI-Powered<br><span class="gold">Yield Optimization</span></h2>
+    <p class="anim anim-d2" style="margin-bottom:2rem">Wealthfront for DeFi. One interface. The intelligence of an entire trading desk.</p>
+    <div class="steps anim anim-d3">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Deposit</h3>
+        <p>Drop assets into a Meridian Vault. One transaction.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Optimize</h3>
+        <p>ML engine scores every strategy by risk-adjusted return, allocates optimally.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Earn</h3>
+        <p>Auto-compound. Auto-rebalance. Withdraw anytime. No lockups.</p>
+      </div>
+    </div>
+    <p class="quote anim anim-d4">No manual farming. No spreadsheets. No missed alpha.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 4: HOW IT WORKS ═══════════════════ -->
+<div class="slide" data-notes="Walk through the architecture. Emphasize ERC-4626 standard and ML pipeline.">
+  <div class="slide-inner">
+    <span class="tag anim">Architecture</span>
+    <h2 class="anim anim-d1">How It <span class="gold">Works</span></h2>
+    <div class="arch anim anim-d2">
+      <div class="arch-box" style="border-color:var(--gold-light)">User</div>
+      <div class="arch-arrow">&#8595;</div>
+      <div class="arch-box">Next.js Dashboard</div>
+      <div class="arch-arrow">&#8595;</div>
+      <div class="arch-box gold-border">The Graph Indexer &mdash; Real-time on-chain data</div>
+      <div class="arch-arrow">&#8595;</div>
+      <div class="arch-row">
+        <div class="arch-box" style="border-color:rgba(247,147,26,.5)">
+          <div style="font-size:.7rem;color:var(--gold);margin-bottom:.2rem">SOLIDITY</div>
+          MeridianVault.sol<br><span style="font-size:.75rem;color:var(--white-30)">ERC-4626</span>
+        </div>
+        <div class="arch-box" style="border-color:rgba(247,147,26,.5)">
+          <div style="font-size:.7rem;color:var(--gold);margin-bottom:.2rem">PYTHON</div>
+          ML Engine<br><span style="font-size:.75rem;color:var(--white-30)">Risk scoring + yield prediction</span>
+        </div>
+      </div>
+      <div class="arch-arrow">&#8595;</div>
+      <div class="arch-box gold-border" style="font-size:1rem;padding:1rem 2.5rem">HashKey Chain</div>
+    </div>
+    <div class="stats anim anim-d3" style="margin-top:1rem">
+      <div class="stat"><div class="stat-label" style="font-size:.7rem">ERC-4626</div><div style="font-size:.8rem;color:var(--gold-light);font-weight:600">Composable Vaults</div></div>
+      <div class="stat"><div class="stat-label" style="font-size:.7rem">StrategyRouter</div><div style="font-size:.8rem;color:var(--gold-light);font-weight:600">On-chain Execution</div></div>
+      <div class="stat"><div class="stat-label" style="font-size:.7rem">The Graph</div><div style="font-size:.8rem;color:var(--gold-light);font-weight:600">Real-time Analytics</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 5: DEMO / WHY HASHKEY ═══════════════════ -->
+<div class="slide" data-notes="This is the 'why now, why here' slide. HashKey is not just where we deploy, it's WHY Meridian works.">
+  <div class="slide-inner">
+    <span class="tag anim">Why HashKey Chain</span>
+    <h2 class="anim anim-d1">Not just where we deploy.<br><span class="gold">Why Meridian works.</span></h2>
+    <div class="cards anim anim-d2">
+      <div class="card"><h3>EVM-Compatible</h3><p>Deploy battle-tested Solidity. Zero rewrites. Instant composability.</p></div>
+      <div class="card"><h3>Low Gas Costs</h3><p>Frequent rebalancing becomes economically viable. Critical for an optimizer.</p></div>
+      <div class="card"><h3>Regulatory Clarity</h3><p>HashKey is licensed and compliant. For retail DeFi, compliance is a feature.</p></div>
+      <div class="card"><h3>First-Mover</h3><p>Early ecosystem. Less competition. Be the yield layer for HashKey Chain.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 6: MARKET ═══════════════════ -->
+<div class="slide" data-notes="TAM $100B, SAM $15B, SOM $10-50M year 1. We're not competing in a crowded market. We're building the yield layer for a new chain.">
+  <div class="slide-inner">
+    <span class="tag anim">Market Opportunity</span>
+    <h2 class="anim anim-d1">Building the yield layer<br><span class="gold">for a new chain.</span></h2>
+    <div class="tam-viz anim anim-d2">
+      <div class="tam-circle tam-outer">
+        <span class="tam-label">TAM</span>
+        <span class="tam-value">$100B+</span>
+        <span style="font-size:.65rem;color:var(--white-30)">Total DeFi TVL</span>
+      </div>
+      <div class="tam-circle tam-mid">
+        <span class="tam-label">SAM</span>
+        <span class="tam-value">$15B</span>
+        <span style="font-size:.65rem;color:var(--white-30)">Yield Aggregation</span>
+      </div>
+      <div class="tam-circle tam-inner">
+        <span class="tam-value" style="font-size:.9rem">$10-50M</span>
+        <span class="tam-label" style="position:static">SOM Y1</span>
+      </div>
+    </div>
+    <div class="stats anim anim-d3">
+      <div class="stat"><div class="stat-val" style="font-size:1.6rem">10M+</div><div class="stat-label">Monthly active wallets</div></div>
+      <div class="stat"><div class="stat-val" style="font-size:1.6rem">$500M</div><div class="stat-label">SOM Year 3</div></div>
+      <div class="stat"><div class="stat-val" style="font-size:1.6rem">50K</div><div class="stat-label">Target depositors Y3</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 7: BUSINESS MODEL ═══════════════════ -->
+<div class="slide" data-notes="Performance fee only. 10% of yield. We only eat when users eat. Aligned incentives.">
+  <div class="slide-inner">
+    <span class="tag anim">Business Model</span>
+    <h2 class="anim anim-d1"><span class="gold">10%</span> Performance Fee</h2>
+    <p class="anim anim-d2">No deposit fees. No withdrawal fees. No hidden costs.<br>We only make money <strong style="color:var(--gold-light)">when users make money.</strong></p>
+    <div class="bar-chart anim anim-d3">
+      <div class="bar-col">
+        <div class="bar-val">$80K</div>
+        <div class="bar" data-height="40" style="height:0"></div>
+        <div class="bar-label">Y1 Cons.</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar-val">$500K</div>
+        <div class="bar" data-height="80" style="height:0"></div>
+        <div class="bar-label">Y1 Growth</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar-val">$2.4M</div>
+        <div class="bar" data-height="130" style="height:0"></div>
+        <div class="bar-label">Y2</div>
+      </div>
+      <div class="bar-col">
+        <div class="bar-val">$6M</div>
+        <div class="bar" data-height="190" style="height:0"></div>
+        <div class="bar-label">Y3</div>
+      </div>
+    </div>
+    <p class="quote anim anim-d4">"If we do not generate yield, we do not eat."</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 8: UNIT ECONOMICS ═══════════════════ -->
+<div class="slide" data-notes="LTV:CAC 12-30x. 92% gross margin. Cash flow positive Q3 2027.">
+  <div class="slide-inner">
+    <span class="tag anim">Unit Economics</span>
+    <h2 class="anim anim-d1">The Numbers <span class="gold">Work</span></h2>
+    <div class="stats anim anim-d2">
+      <div class="stat"><div class="stat-val" style="font-size:2.4rem">$600</div><div class="stat-label">Depositor LTV</div></div>
+      <div class="stat"><div class="stat-val" style="font-size:2.4rem">$20</div><div class="stat-label">Best CAC</div></div>
+      <div class="stat"><div class="stat-val" style="font-size:2.4rem">30x</div><div class="stat-label">LTV:CAC</div></div>
+      <div class="stat"><div class="stat-val" style="font-size:2.4rem">92%</div><div class="stat-label">Gross Margin</div></div>
+    </div>
+    <table class="tbl anim anim-d3" style="max-width:700px;margin:1.5rem auto">
+      <thead><tr><th>Metric</th><th>Year 1</th><th>Year 2</th><th>Year 3</th></tr></thead>
+      <tbody>
+        <tr><td>TVL</td><td>$10-50M</td><td>$100-200M</td><td>$300-500M</td></tr>
+        <tr><td>Revenue</td><td>$80K-500K</td><td>$1-2.4M</td><td style="color:var(--gold-light);font-weight:600">$3-6M</td></tr>
+        <tr><td>Gross Margin</td><td>90%</td><td>92%</td><td>93%</td></tr>
+        <tr><td>Depositors</td><td>500-2K</td><td>5-10K</td><td>20-50K</td></tr>
+        <tr><td>CAC Payback</td><td colspan="3" style="color:var(--gold-light)">2-4 months</td></tr>
+      </tbody>
+    </table>
+    <p class="small anim anim-d4">Break-even at ~$50M TVL. Cash flow positive by Q3 2027.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 9: ROADMAP ═══════════════════ -->
+<div class="slide" data-notes="We already built working contracts, ML model, dashboard, and subgraph during this hackathon. That is traction.">
+  <div class="slide-inner">
+    <span class="tag anim">Roadmap</span>
+    <h2 class="anim anim-d1">Built in a sprint.<br><span class="gold">Scaling with purpose.</span></h2>
+    <div class="cards anim anim-d2" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:2rem">
+      <div class="card" style="border-color:var(--gold)"><h3>Hackathon (Now)</h3><p>Contracts on testnet. ML model trained. Dashboard live. Subgraph indexed.</p></div>
+    </div>
+    <div class="roadmap anim anim-d3">
+      <div class="rm-item">
+        <div class="rm-dot"></div>
+        <div class="rm-time">Q2 2026</div>
+        <div class="rm-title">Alpha</div>
+        <div class="rm-desc">Mainnet launch. Single-asset vaults. Initial strategies.</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-dot"></div>
+        <div class="rm-time">Q3 2026</div>
+        <div class="rm-title">Beta</div>
+        <div class="rm-desc">Multi-asset vaults. Advanced ML. Mobile support.</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-dot"></div>
+        <div class="rm-time">Q4 2026</div>
+        <div class="rm-title">Growth</div>
+        <div class="rm-desc">Cross-chain expansion. Institutional API. DAO governance.</div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-dot"></div>
+        <div class="rm-time">2027</div>
+        <div class="rm-title">Scale</div>
+        <div class="rm-desc">$50M+ TVL. Protocol partnerships. Token launch.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 10: COMPETITION ═══════════════════ -->
+<div class="slide" data-notes="We win on AI risk scoring, HashKey native, fee structure, and regulatory positioning. Nobody else has this combination.">
+  <div class="slide-inner">
+    <span class="tag anim">Competitive Landscape</span>
+    <h2 class="anim anim-d1">Why <span class="gold">Meridian</span> wins</h2>
+    <div class="comp-grid anim anim-d2">
+      <table>
+        <thead>
+          <tr><th>Capability</th><th class="comp-highlight">Meridian</th><th>Yearn</th><th>Beefy</th><th>Convex</th><th>Manual</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>AI/ML Risk Scoring</td><td class="comp-highlight check">&#10003;</td><td class="cross">&#10005;</td><td class="cross">&#10005;</td><td class="cross">&#10005;</td><td class="cross">&#10005;</td></tr>
+          <tr><td>Auto-Rebalancing</td><td class="comp-highlight check">Frequent</td><td>Infrequent</td><td class="check">&#10003;</td><td>Limited</td><td class="cross">&#10005;</td></tr>
+          <tr><td>Risk-Adjusted Allocation</td><td class="comp-highlight check">&#10003;</td><td class="cross">&#10005;</td><td class="cross">&#10005;</td><td class="cross">&#10005;</td><td>Guesswork</td></tr>
+          <tr><td>HashKey Native</td><td class="comp-highlight check">&#10003;</td><td class="cross">&#10005;</td><td class="cross">&#10005;</td><td class="cross">&#10005;</td><td>Possible</td></tr>
+          <tr><td>ERC-4626</td><td class="comp-highlight check">&#10003;</td><td>Partial</td><td class="cross">&#10005;</td><td class="cross">&#10005;</td><td>N/A</td></tr>
+          <tr><td>Regulatory-Friendly</td><td class="comp-highlight check">&#10003;</td><td class="cross">&#10005;</td><td class="cross">&#10005;</td><td class="cross">&#10005;</td><td>Varies</td></tr>
+          <tr><td>Fee Structure</td><td class="comp-highlight" style="color:var(--gold-light);font-weight:600">10% perf only</td><td>2%+20%</td><td>0.1% harvest</td><td>Varies</td><td>N/A</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small anim anim-d3" style="margin-top:1rem">Data moat: more TVL = more data = better predictions = more TVL. The flywheel compounds.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 11: TEAM ═══════════════════ -->
+<div class="slide" data-notes="We are builders. This entire system was built in a hackathon sprint. That's the kind of team you want.">
+  <div class="slide-inner">
+    <span class="tag anim">The Team</span>
+    <h2 class="anim anim-d1">We are <span class="gold">builders.</span></h2>
+    <p class="anim anim-d2" style="margin-bottom:2rem">This entire system was built in a hackathon sprint.</p>
+    <div class="team-grid anim anim-d3">
+      <div class="team-card">
+        <div class="team-icon">&#9939;</div>
+        <div class="team-role">Smart Contract Engineer</div>
+        <div class="team-focus">Vault architecture, strategy routing, on-chain security</div>
+      </div>
+      <div class="team-card">
+        <div class="team-icon">&#9776;</div>
+        <div class="team-role">Frontend Engineer</div>
+        <div class="team-focus">Dashboard, portfolio visualization, wallet UX</div>
+      </div>
+      <div class="team-card">
+        <div class="team-icon">&#9881;</div>
+        <div class="team-role">ML / Data Engineer</div>
+        <div class="team-focus">Yield prediction models, risk scoring pipeline</div>
+      </div>
+      <div class="team-card">
+        <div class="team-icon">&#9733;</div>
+        <div class="team-role">Product / Design</div>
+        <div class="team-focus">User experience, go-to-market, hackathon narrative</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ SLIDE 12: THE ASK ═══════════════════ -->
+<div class="slide" data-notes="Close strong. We need ecosystem support, protocol integrations, and community feedback. We give them the yield layer.">
+  <div class="slide-inner">
+    <span class="tag anim">The Ask</span>
+    <h2 class="anim anim-d1">Building the yield layer<br>for <span class="gold">HashKey Chain.</span></h2>
+    <div class="ask-grid anim anim-d2">
+      <div class="ask-box">
+        <h3>What We Need</h3>
+        <ul>
+          <li>HashKey ecosystem grants and partnership support</li>
+          <li>Early DeFi protocol integrations on HashKey Chain</li>
+          <li>Community and user feedback to refine the product</li>
+        </ul>
+      </div>
+      <div class="ask-box">
+        <h3>What You Get</h3>
+        <ul>
+          <li>The first institutional-grade yield optimizer for your chain</li>
+          <li>A product that makes DeFi accessible to every retail user on earth</li>
+          <li>A team that builds fast, thinks deeply, and ships relentlessly</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="donut-wrap anim anim-d3">
+      <svg class="donut-svg" viewBox="0 0 42 42">
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="4"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#f7931a" stroke-width="4" stroke-dasharray="47 53" stroke-dashoffset="25" stroke-linecap="round"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#e8850f" stroke-width="4" stroke-dasharray="17 83" stroke-dashoffset="78" stroke-linecap="round"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#ffd700" stroke-width="4" stroke-dasharray="13 87" stroke-dashoffset="61" stroke-linecap="round"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#c87a10" stroke-width="4" stroke-dasharray="13 87" stroke-dashoffset="48" stroke-linecap="round"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#a06010" stroke-width="4" stroke-dasharray="10 90" stroke-dashoffset="35" stroke-linecap="round"/>
+        <text x="21" y="22" text-anchor="middle" fill="white" font-size="4" font-weight="700" font-family="Inter">$1.5M</text>
+        <text x="21" y="25.5" text-anchor="middle" fill="rgba(255,255,255,.4)" font-size="2.2" font-family="Inter">PRE-SEED</text>
+      </svg>
+      <div class="donut-legend">
+        <div class="donut-legend-item"><div class="donut-legend-dot" style="background:#f7931a"></div>Engineering 47%</div>
+        <div class="donut-legend-item"><div class="donut-legend-dot" style="background:#e8850f"></div>Security Audits 17%</div>
+        <div class="donut-legend-item"><div class="donut-legend-dot" style="background:#ffd700"></div>Community + Growth 13%</div>
+        <div class="donut-legend-item"><div class="donut-legend-dot" style="background:#c87a10"></div>Operations + Legal 13%</div>
+        <div class="donut-legend-item"><div class="donut-legend-dot" style="background:#a06010"></div>Reserve 10%</div>
+      </div>
+    </div>
+
+    <h1 class="anim anim-d4" style="margin-top:1.5rem"><span class="gold">Meridian.</span></h1>
+    <p class="anim anim-d5" style="color:var(--white-60);font-size:1.1rem">One deposit. Maximum yield. Institutional intelligence.</p>
+    <p class="quote anim anim-d6">The future of DeFi is not more complexity. It is less.</p>
+  </div>
+</div>
+</div>
+
+<!-- SPEAKER NOTES PANEL -->
+<div id="notes-panel">
+  <h4>Speaker Notes</h4>
+  <div id="notes-content"></div>
+</div>
+
+<script>
+(function(){
+  const slides=document.querySelectorAll('.slide');
+  const total=slides.length;
+  let cur=0;
+  const progress=document.getElementById('progress');
+  const counter=document.getElementById('counter');
+  const notesPanel=document.getElementById('notes-panel');
+  const notesContent=document.getElementById('notes-content');
+  let notesVisible=false;
+
+  function go(n){
+    if(n<0||n>=total)return;
+    slides[cur].classList.remove('active');
+    slides[cur].classList.add(n>cur?'prev':'');
+    slides[cur].classList.remove(n<cur?'prev':'');
+    cur=n;
+    slides[cur].classList.remove('prev');
+    slides[cur].classList.add('active');
+    progress.style.width=((cur+1)/total*100)+'%';
+    counter.textContent=(cur+1)+' / '+total;
+    notesContent.textContent=slides[cur].dataset.notes||'';
+    animateCounters();
+    animateBars();
+  }
+
+  // Animated counters
+  function animateCounters(){
+    slides[cur].querySelectorAll('.counter').forEach(el=>{
+      const target=+el.dataset.target;
+      const suffix=el.dataset.suffix||'';
+      let start=0;
+      const duration=1200;
+      const startTime=performance.now();
+      function tick(now){
+        const elapsed=now-startTime;
+        const p=Math.min(elapsed/duration,1);
+        const ease=1-Math.pow(1-p,3);
+        el.textContent='$'+Math.round(start+(target-start)*ease)+suffix;
+        if(el.dataset.suffix&&!el.dataset.suffix.includes('$'))el.textContent=Math.round(start+(target-start)*ease)+suffix;
+        if(el.dataset.target>=100)el.textContent='$'+Math.round(start+(target-start)*ease)+suffix;
+        if(p<1)requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+  }
+
+  // Animated bars
+  function animateBars(){
+    slides[cur].querySelectorAll('.bar').forEach(el=>{
+      setTimeout(()=>{el.style.height=el.dataset.height+'px'},200);
+    });
+  }
+
+  // Keyboard nav
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='ArrowDown')go(cur+1);
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(cur-1);
+    else if(e.key==='f'||e.key==='F'){
+      if(!document.fullscreenElement)document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }else if(e.key==='n'||e.key==='N'){
+      notesVisible=!notesVisible;
+      notesPanel.classList.toggle('show',notesVisible);
+    }
+  });
+
+  // Click nav
+  document.addEventListener('click',e=>{
+    if(e.target.closest('#notes-panel'))return;
+    if(e.clientX>window.innerWidth/2)go(cur+1);else go(cur-1);
+  });
+
+  // Touch
+  let tx=0;
+  document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX});
+  document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-tx;
+    if(Math.abs(dx)>50){dx<0?go(cur+1):go(cur-1)}
+  });
+
+  // Particles for title slide
+  const pContainer=document.getElementById('particles');
+  for(let i=0;i<40;i++){
+    const s=document.createElement('span');
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDelay=Math.random()*8+'s';
+    s.style.animationDuration=(6+Math.random()*6)+'s';
+    s.style.width=s.style.height=(1+Math.random()*2)+'px';
+    s.style.opacity=.1+Math.random()*.2;
+    pContainer.appendChild(s);
+  }
+
+  // Init
+  go(0);
+})();
+</script>
+</body>
+</html>

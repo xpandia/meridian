@@ -1,0 +1,1933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian — AI-Powered DeFi Yield Optimization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   RESET & FOUNDATIONS
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --navy-deep: #050d1a;
+  --navy: #0a1628;
+  --navy-light: #111f36;
+  --navy-mid: #162640;
+  --navy-surface: #1a2d4a;
+  --gold: #f7931a;
+  --gold-light: #ffd700;
+  --gold-pale: #ffe066;
+  --white: #ffffff;
+  --white-90: rgba(255,255,255,0.9);
+  --white-70: rgba(255,255,255,0.7);
+  --white-50: rgba(255,255,255,0.5);
+  --white-20: rgba(255,255,255,0.2);
+  --white-10: rgba(255,255,255,0.1);
+  --white-05: rgba(255,255,255,0.05);
+  --green: #00d4aa;
+  --green-dim: rgba(0,212,170,0.15);
+  --red: #ff4d6a;
+  --gradient-gold: linear-gradient(135deg, #f7931a, #ffd700);
+  --gradient-gold-text: linear-gradient(135deg, #f7931a 0%, #ffd700 50%, #f7931a 100%);
+  --gradient-card: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+  --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--navy-deep);
+  color: var(--white-90);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.section-pad { padding: 120px 0; }
+
+.gold-text {
+  background: var(--gradient-gold-text);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(247,147,26,0.3);
+  background: rgba(247,147,26,0.08);
+  color: var(--gold-light);
+}
+
+.badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+
+/* ============================================================
+   SCROLL ANIMATIONS
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ============================================================
+   BACKGROUND GRID + GLOW
+   ============================================================ */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.bg-glow {
+  position: fixed;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-glow-1 {
+  top: -200px; right: -100px;
+  background: var(--gold);
+}
+
+.bg-glow-2 {
+  bottom: 20%; left: -200px;
+  background: #1a5ff7;
+}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  padding: 0 24px;
+  transition: background 0.4s, box-shadow 0.4s, padding 0.4s;
+}
+
+.navbar.scrolled {
+  background: rgba(5,13,26,0.85);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  box-shadow: 0 1px 0 var(--white-05);
+}
+
+.navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--white);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+.logo-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--gradient-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: var(--navy-deep);
+  font-weight: 900;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--white-70);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color var(--transition);
+  letter-spacing: -0.01em;
+}
+
+.nav-links a:hover { color: var(--white); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 100px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  letter-spacing: -0.01em;
+}
+
+.btn-primary {
+  background: var(--gradient-gold);
+  color: var(--navy-deep);
+  box-shadow: 0 4px 24px rgba(247,147,26,0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(247,147,26,0.45);
+}
+
+.btn-ghost {
+  background: var(--white-05);
+  color: var(--white-90);
+  border: 1px solid var(--white-10);
+}
+
+.btn-ghost:hover {
+  background: var(--white-10);
+  border-color: var(--white-20);
+}
+
+/* Mobile nav toggle */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.nav-toggle span {
+  width: 22px; height: 2px;
+  background: var(--white-90);
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: 72px;
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.hero-text { max-width: 560px; }
+
+.hero-eyebrow {
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 5vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  margin-bottom: 24px;
+  color: var(--white);
+}
+
+.hero p {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--white-70);
+  margin-bottom: 40px;
+  max-width: 480px;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 56px;
+  padding-top: 32px;
+  border-top: 1px solid var(--white-10);
+}
+
+.hero-stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.hero-stat-label {
+  font-size: 0.8rem;
+  color: var(--white-50);
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   LIVE CHART (HERO RIGHT)
+   ============================================================ */
+.hero-chart-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chart-terminal {
+  width: 100%;
+  max-width: 520px;
+  background: var(--navy);
+  border: 1px solid var(--white-10);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow:
+    0 4px 6px rgba(0,0,0,0.1),
+    0 24px 80px rgba(0,0,0,0.4),
+    inset 0 1px 0 var(--white-05);
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--white-05);
+}
+
+.chart-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chart-dots {
+  display: flex; gap: 6px;
+}
+
+.chart-dots span {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+
+.chart-dots span:nth-child(1) { background: #ff5f57; }
+.chart-dots span:nth-child(2) { background: #febc2e; }
+.chart-dots span:nth-child(3) { background: #28c840; }
+
+.chart-title-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--white-70);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.chart-live-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.chart-live-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.chart-body { padding: 20px; }
+
+.chart-metrics {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.chart-metric {}
+
+.chart-metric-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--white-50);
+  margin-bottom: 4px;
+}
+
+.chart-metric-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.chart-metric-value.green { color: var(--green); }
+.chart-metric-value.gold { color: var(--gold-light); }
+
+.chart-metric-delta {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--green);
+  margin-top: 2px;
+}
+
+.chart-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  margin-bottom: 16px;
+}
+
+.chart-canvas-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.chart-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-top: 1px solid var(--white-05);
+  background: var(--white-05);
+}
+
+.chart-footer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--white-50);
+}
+
+.chart-footer-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+/* ============================================================
+   PROBLEM SECTION
+   ============================================================ */
+.problem { background: var(--navy); position: relative; z-index: 1; }
+
+.section-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.section-header .badge { margin-bottom: 20px; }
+
+.section-header h2 {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+
+.section-header p {
+  font-size: 1.05rem;
+  color: var(--white-70);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.problem-card {
+  background: var(--gradient-card);
+  border: 1px solid var(--white-10);
+  border-radius: var(--radius);
+  padding: 36px 28px;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.problem-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gradient-gold);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.problem-card:hover {
+  border-color: rgba(247,147,26,0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+
+.problem-card:hover::before { opacity: 1; }
+
+.problem-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: rgba(247,147,26,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 20px;
+}
+
+.problem-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.problem-card p {
+  font-size: 0.925rem;
+  line-height: 1.65;
+  color: var(--white-70);
+}
+
+.problem-stat {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--white-05);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--red);
+  letter-spacing: -0.02em;
+}
+
+.problem-stat span {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--white-50);
+  margin-top: 4px;
+  letter-spacing: 0;
+}
+
+/* ============================================================
+   SOLUTION SECTION
+   ============================================================ */
+.solution {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+}
+
+.solution-showcase {
+  background: var(--navy-light);
+  border: 1px solid var(--white-10);
+  border-radius: 20px;
+  padding: 48px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.solution-showcase::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 80px; right: 80px;
+  height: 2px;
+  background: var(--gradient-gold);
+  border-radius: 0 0 4px 4px;
+}
+
+.solution-text h3 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.solution-text p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--white-70);
+  margin-bottom: 28px;
+}
+
+.solution-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.solution-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.solution-feature-icon {
+  width: 32px; height: 32px;
+  min-width: 32px;
+  border-radius: 8px;
+  background: var(--green-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
+.solution-feature-text {
+  font-size: 0.925rem;
+  line-height: 1.55;
+  color: var(--white-70);
+}
+
+.solution-feature-text strong {
+  color: var(--white-90);
+  font-weight: 600;
+}
+
+.solution-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sol-metric-card {
+  background: var(--white-05);
+  border: 1px solid var(--white-10);
+  border-radius: var(--radius-sm);
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all var(--transition);
+}
+
+.sol-metric-card:hover {
+  background: var(--white-10);
+  transform: translateX(4px);
+}
+
+.sol-metric-info {}
+
+.sol-metric-name {
+  font-size: 0.8rem;
+  color: var(--white-50);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.sol-metric-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.sol-metric-bar {
+  width: 100px;
+  height: 6px;
+  background: var(--white-10);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.sol-metric-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  width: 0;
+}
+
+.sol-metric-bar-fill.gold { background: var(--gradient-gold); }
+.sol-metric-bar-fill.green { background: var(--green); }
+
+/* ============================================================
+   HOW IT WORKS
+   ============================================================ */
+.how-it-works {
+  position: relative;
+  z-index: 1;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  position: relative;
+}
+
+.steps::before {
+  content: '';
+  position: absolute;
+  top: 52px;
+  left: calc(16.66% + 24px);
+  right: calc(16.66% + 24px);
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+  opacity: 0.3;
+}
+
+.step {
+  text-align: center;
+  position: relative;
+}
+
+.step-number {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: var(--gradient-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--navy-deep);
+  margin: 0 auto 24px;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 8px 24px rgba(247,147,26,0.25);
+}
+
+.step h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.step p {
+  font-size: 0.925rem;
+  color: var(--white-70);
+  line-height: 1.65;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   YIELD CARDS (FEATURES)
+   ============================================================ */
+.features {
+  background: var(--navy);
+  position: relative;
+  z-index: 1;
+}
+
+.yield-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.yield-card {
+  background: var(--gradient-card);
+  border: 1px solid var(--white-10);
+  border-radius: var(--radius);
+  padding: 28px;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.yield-card:hover {
+  border-color: rgba(247,147,26,0.25);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+}
+
+.yield-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.yield-card-pair {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.yield-card-icons {
+  display: flex;
+}
+
+.yield-card-icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 2px solid var(--navy);
+}
+
+.yield-card-icon:nth-child(2) { margin-left: -10px; }
+
+.yield-card-icon.btc { background: #f7931a; color: #fff; }
+.yield-card-icon.eth { background: #627eea; color: #fff; }
+.yield-card-icon.usdc { background: #2775ca; color: #fff; }
+.yield-card-icon.hsk { background: var(--gradient-gold); color: var(--navy-deep); }
+.yield-card-icon.dai { background: #f5ac37; color: #fff; }
+.yield-card-icon.usdt { background: #26a17b; color: #fff; }
+
+.yield-card-name {
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.yield-card-protocol {
+  font-size: 0.75rem;
+  color: var(--white-50);
+  margin-top: 2px;
+}
+
+.yield-card-risk {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+
+.risk-low {
+  background: rgba(0,212,170,0.12);
+  color: var(--green);
+  border: 1px solid rgba(0,212,170,0.2);
+}
+
+.risk-med {
+  background: rgba(247,147,26,0.12);
+  color: var(--gold-light);
+  border: 1px solid rgba(247,147,26,0.2);
+}
+
+.yield-card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.yield-data {}
+
+.yield-data-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--white-50);
+  margin-bottom: 4px;
+}
+
+.yield-data-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.yield-data-value.green { color: var(--green); }
+
+.yield-sparkline {
+  height: 40px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.yield-sparkline-bar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  background: var(--green);
+  opacity: 0.6;
+  transition: height 0.6s ease;
+  min-height: 4px;
+}
+
+.yield-sparkline-bar:last-child { opacity: 1; }
+
+/* ============================================================
+   SECURITY
+   ============================================================ */
+.security {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+}
+
+.security-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.security-card {
+  background: var(--gradient-card);
+  border: 1px solid var(--white-10);
+  border-radius: var(--radius);
+  padding: 36px 32px;
+  display: flex;
+  gap: 20px;
+  transition: all var(--transition);
+}
+
+.security-card:hover {
+  border-color: var(--white-20);
+  background: rgba(255,255,255,0.06);
+}
+
+.security-icon {
+  width: 48px; height: 48px;
+  min-width: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  background: var(--white-05);
+  border: 1px solid var(--white-10);
+}
+
+.security-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.security-card p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--white-70);
+}
+
+/* ============================================================
+   CTA
+   ============================================================ */
+.cta {
+  position: relative;
+  z-index: 1;
+  padding: 120px 0 140px;
+}
+
+.cta-box {
+  text-align: center;
+  padding: 80px 40px;
+  border-radius: 24px;
+  background: var(--navy-light);
+  border: 1px solid var(--white-10);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+}
+
+.cta-box::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 60px; right: 60px;
+  height: 2px;
+  background: var(--gradient-gold);
+}
+
+.cta-box::after {
+  content: '';
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.04;
+  filter: blur(80px);
+}
+
+.cta-box h2 {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.cta-box p {
+  font-size: 1.1rem;
+  color: var(--white-70);
+  margin-bottom: 36px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  z-index: 1;
+  line-height: 1.7;
+}
+
+.cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--white-05);
+  padding: 40px 0;
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-left {
+  font-size: 0.85rem;
+  color: var(--white-50);
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+
+.footer-links a {
+  font-size: 0.85rem;
+  color: var(--white-50);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.footer-links a:hover { color: var(--white-90); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .hero-content { grid-template-columns: 1fr; gap: 48px; }
+  .hero-chart-wrapper { order: -1; }
+  .chart-terminal { max-width: 100%; }
+  .problem-grid { grid-template-columns: 1fr 1fr; }
+  .solution-showcase { grid-template-columns: 1fr; padding: 36px; }
+  .yield-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  .section-pad { padding: 80px 0; }
+  .nav-links { display: none; }
+  .nav-toggle { display: flex; }
+  .problem-grid { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: 1fr; gap: 48px; }
+  .steps::before { display: none; }
+  .yield-grid { grid-template-columns: 1fr; }
+  .security-grid { grid-template-columns: 1fr; }
+  .hero-stats { flex-direction: column; gap: 20px; }
+  .footer-inner { flex-direction: column; gap: 20px; text-align: center; }
+  .chart-metrics { flex-wrap: wrap; gap: 12px; }
+}
+
+@media (max-width: 480px) {
+  .section-pad { padding: 60px 0; }
+  .cta-box { padding: 48px 24px; }
+  .solution-showcase { padding: 24px; }
+  .hero-buttons { flex-direction: column; }
+  .btn { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<!-- Navbar -->
+<nav class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon">M</div>
+      Meridian
+    </a>
+    <ul class="nav-links">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#solution">Solution</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#features">Strategies</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#cta" class="btn btn-primary">Launch App</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-eyebrow">
+          <span class="badge">Built on HashKey Chain</span>
+        </div>
+        <h1>Institutional DeFi Yields.<br><span class="gold-text">For Everyone.</span></h1>
+        <p>Meridian uses machine learning to continuously optimize your yield across every strategy on HashKey Chain. One vault. Maximum risk-adjusted returns. Zero complexity.</p>
+        <div class="hero-buttons">
+          <a href="#cta" class="btn btn-primary">Start Earning</a>
+          <a href="#how-it-works" class="btn btn-ghost">How It Works</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-value gold-text" id="statApy">0%</div>
+            <div class="hero-stat-label">Avg. Optimized APY</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-value gold-text" id="statTvl">$0</div>
+            <div class="hero-stat-label">Total Value Locked</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-value gold-text" id="statStrategies">0</div>
+            <div class="hero-stat-label">Active Strategies</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-chart-wrapper reveal">
+        <div class="chart-terminal">
+          <div class="chart-header">
+            <div class="chart-header-left">
+              <div class="chart-dots"><span></span><span></span><span></span></div>
+              <span class="chart-title-text">Meridian Yield Engine</span>
+            </div>
+            <span class="chart-live-badge">Live</span>
+          </div>
+          <div class="chart-body">
+            <div class="chart-metrics">
+              <div class="chart-metric">
+                <div class="chart-metric-label">Portfolio APY</div>
+                <div class="chart-metric-value green" id="chartApy">18.42%</div>
+                <div class="chart-metric-delta">+2.1% vs market</div>
+              </div>
+              <div class="chart-metric">
+                <div class="chart-metric-label">Net Value</div>
+                <div class="chart-metric-value gold">$124,891</div>
+              </div>
+              <div class="chart-metric">
+                <div class="chart-metric-label">24h Yield</div>
+                <div class="chart-metric-value green">+$63.22</div>
+              </div>
+            </div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="yieldChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-footer">
+            <div class="chart-footer-item">
+              <span class="chart-footer-dot" style="background:var(--gold)"></span>
+              Meridian Optimized
+            </div>
+            <div class="chart-footer-item">
+              <span class="chart-footer-dot" style="background:var(--white-20)"></span>
+              Market Average
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Problem -->
+<section class="problem section-pad" id="problem">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="badge">The Problem</span>
+      <h2>DeFi Yield Is Broken<br>for <span class="gold-text">Retail Users</span></h2>
+      <p>Institutions run quantitative models across hundreds of pools. Retail users are left guessing, losing yield every single day.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card reveal reveal-delay-1">
+        <div class="problem-icon">&#x1F50D;</div>
+        <h3>Information Asymmetry</h3>
+        <p>Hedge funds deploy real-time analytics across every protocol. Average users check Twitter and hope for the best.</p>
+        <div class="problem-stat">73%<span>of retail users pick suboptimal pools</span></div>
+      </div>
+      <div class="problem-card reveal reveal-delay-2">
+        <div class="problem-icon">&#x1F4B8;</div>
+        <h3>Capital Inefficiency</h3>
+        <p>Funds sit idle in single pools for weeks while higher-yield opportunities emerge and vanish every block cycle.</p>
+        <div class="problem-stat">40-60%<span>of potential yield left on the table</span></div>
+      </div>
+      <div class="problem-card reveal reveal-delay-3">
+        <div class="problem-icon">&#x26A0;</div>
+        <h3>Risk Blindness</h3>
+        <p>Smart contract risk, impermanent loss, and protocol solvency are invisible to most users until it is too late.</p>
+        <div class="problem-stat">$3.8B<span>lost to DeFi exploits in 2024</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Solution -->
+<section class="solution section-pad" id="solution">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="badge">The Solution</span>
+      <h2>One Vault. <span class="gold-text">Maximum Yield.</span><br>Institutional Intelligence.</h2>
+      <p>Meridian brings quantitative finance to every DeFi user on HashKey Chain.</p>
+    </div>
+    <div class="solution-showcase reveal">
+      <div class="solution-text">
+        <h3>AI That Thinks Like a <span class="gold-text">Quant Fund</span></h3>
+        <p>Our ML engine continuously scores every strategy by risk-adjusted return, then allocates your capital across the optimal set. No manual farming. No spreadsheets.</p>
+        <div class="solution-features">
+          <div class="solution-feature">
+            <div class="solution-feature-icon">&#x2713;</div>
+            <div class="solution-feature-text"><strong>Real-time rebalancing</strong> across every yield source on HashKey Chain</div>
+          </div>
+          <div class="solution-feature">
+            <div class="solution-feature-icon">&#x2713;</div>
+            <div class="solution-feature-text"><strong>Risk-adjusted scoring</strong> that weighs APY against smart contract and protocol risk</div>
+          </div>
+          <div class="solution-feature">
+            <div class="solution-feature-icon">&#x2713;</div>
+            <div class="solution-feature-text"><strong>Auto-compounding</strong> that reinvests rewards every cycle for maximum growth</div>
+          </div>
+        </div>
+      </div>
+      <div class="solution-visual">
+        <div class="sol-metric-card">
+          <div class="sol-metric-info">
+            <div class="sol-metric-name">Risk-Adjusted APY</div>
+            <div class="sol-metric-val green" style="color:var(--green)">18.42%</div>
+          </div>
+          <div class="sol-metric-bar"><div class="sol-metric-bar-fill gold" data-width="85"></div></div>
+        </div>
+        <div class="sol-metric-card">
+          <div class="sol-metric-info">
+            <div class="sol-metric-name">Sharpe Ratio</div>
+            <div class="sol-metric-val" style="color:var(--gold-light)">2.41</div>
+          </div>
+          <div class="sol-metric-bar"><div class="sol-metric-bar-fill green" data-width="72"></div></div>
+        </div>
+        <div class="sol-metric-card">
+          <div class="sol-metric-info">
+            <div class="sol-metric-name">Max Drawdown</div>
+            <div class="sol-metric-val" style="color:var(--white-90)">-3.2%</div>
+          </div>
+          <div class="sol-metric-bar"><div class="sol-metric-bar-fill gold" data-width="15"></div></div>
+        </div>
+        <div class="sol-metric-card">
+          <div class="sol-metric-info">
+            <div class="sol-metric-name">Protocol Coverage</div>
+            <div class="sol-metric-val" style="color:var(--gold-light)">12</div>
+          </div>
+          <div class="sol-metric-bar"><div class="sol-metric-bar-fill green" data-width="60"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works section-pad" id="how-it-works">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="badge">How It Works</span>
+      <h2>Three Steps to <span class="gold-text">Optimized Yield</span></h2>
+      <p>We removed everything unnecessary. What remains is effortless.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal reveal-delay-1">
+        <div class="step-number">1</div>
+        <h3>Deposit</h3>
+        <p>Connect your wallet and deposit assets into a Meridian Vault on HashKey Chain. Choose your risk profile -- conservative, balanced, or aggressive.</p>
+      </div>
+      <div class="step reveal reveal-delay-2">
+        <div class="step-number">2</div>
+        <h3>Optimize</h3>
+        <p>Our ML engine analyzes every yield source in real time, scores them by risk-adjusted return, and allocates your capital to the optimal strategy set.</p>
+      </div>
+      <div class="step reveal reveal-delay-3">
+        <div class="step-number">3</div>
+        <h3>Earn</h3>
+        <p>The vault auto-compounds and rebalances your positions continuously. Track your returns on the dashboard. Withdraw anytime -- no lockups, no penalties.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features / Yield Cards -->
+<section class="features section-pad" id="features">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="badge">Live Strategies</span>
+      <h2>Curated Yield <span class="gold-text">Opportunities</span></h2>
+      <p>Every strategy is ML-scored, risk-rated, and continuously monitored. These are not static pools -- they are living allocations.</p>
+    </div>
+    <div class="yield-grid">
+      <div class="yield-card reveal reveal-delay-1">
+        <div class="yield-card-header">
+          <div class="yield-card-pair">
+            <div class="yield-card-icons">
+              <div class="yield-card-icon eth">E</div>
+              <div class="yield-card-icon usdc">U</div>
+            </div>
+            <div>
+              <div class="yield-card-name">ETH / USDC</div>
+              <div class="yield-card-protocol">Concentrated LP</div>
+            </div>
+          </div>
+          <span class="yield-card-risk risk-low">Low Risk</span>
+        </div>
+        <div class="yield-card-body">
+          <div class="yield-data">
+            <div class="yield-data-label">Current APY</div>
+            <div class="yield-data-value green">14.8%</div>
+          </div>
+          <div class="yield-data">
+            <div class="yield-data-label">TVL</div>
+            <div class="yield-data-value">$2.4M</div>
+          </div>
+        </div>
+        <div class="yield-sparkline" data-values="30,45,40,60,55,70,65,80,75,85,90,95"></div>
+      </div>
+
+      <div class="yield-card reveal reveal-delay-2">
+        <div class="yield-card-header">
+          <div class="yield-card-pair">
+            <div class="yield-card-icons">
+              <div class="yield-card-icon btc">B</div>
+              <div class="yield-card-icon hsk">H</div>
+            </div>
+            <div>
+              <div class="yield-card-name">BTC / HSK</div>
+              <div class="yield-card-protocol">Yield Farming</div>
+            </div>
+          </div>
+          <span class="yield-card-risk risk-med">Medium</span>
+        </div>
+        <div class="yield-card-body">
+          <div class="yield-data">
+            <div class="yield-data-label">Current APY</div>
+            <div class="yield-data-value green">22.1%</div>
+          </div>
+          <div class="yield-data">
+            <div class="yield-data-label">TVL</div>
+            <div class="yield-data-value">$1.8M</div>
+          </div>
+        </div>
+        <div class="yield-sparkline" data-values="20,35,50,45,60,55,75,80,70,85,80,92"></div>
+      </div>
+
+      <div class="yield-card reveal reveal-delay-3">
+        <div class="yield-card-header">
+          <div class="yield-card-pair">
+            <div class="yield-card-icons">
+              <div class="yield-card-icon usdc">U</div>
+              <div class="yield-card-icon dai">D</div>
+            </div>
+            <div>
+              <div class="yield-card-name">USDC / DAI</div>
+              <div class="yield-card-protocol">Stable Lending</div>
+            </div>
+          </div>
+          <span class="yield-card-risk risk-low">Low Risk</span>
+        </div>
+        <div class="yield-card-body">
+          <div class="yield-data">
+            <div class="yield-data-label">Current APY</div>
+            <div class="yield-data-value green">8.6%</div>
+          </div>
+          <div class="yield-data">
+            <div class="yield-data-label">TVL</div>
+            <div class="yield-data-value">$5.1M</div>
+          </div>
+        </div>
+        <div class="yield-sparkline" data-values="60,62,58,65,63,68,66,70,72,71,74,76"></div>
+      </div>
+
+      <div class="yield-card reveal reveal-delay-1">
+        <div class="yield-card-header">
+          <div class="yield-card-pair">
+            <div class="yield-card-icons">
+              <div class="yield-card-icon hsk">H</div>
+              <div class="yield-card-icon usdt">T</div>
+            </div>
+            <div>
+              <div class="yield-card-name">HSK / USDT</div>
+              <div class="yield-card-protocol">Delta Neutral</div>
+            </div>
+          </div>
+          <span class="yield-card-risk risk-low">Low Risk</span>
+        </div>
+        <div class="yield-card-body">
+          <div class="yield-data">
+            <div class="yield-data-label">Current APY</div>
+            <div class="yield-data-value green">11.3%</div>
+          </div>
+          <div class="yield-data">
+            <div class="yield-data-label">TVL</div>
+            <div class="yield-data-value">$3.2M</div>
+          </div>
+        </div>
+        <div class="yield-sparkline" data-values="40,42,48,50,52,55,58,56,60,63,65,68"></div>
+      </div>
+
+      <div class="yield-card reveal reveal-delay-2">
+        <div class="yield-card-header">
+          <div class="yield-card-pair">
+            <div class="yield-card-icons">
+              <div class="yield-card-icon eth">E</div>
+              <div class="yield-card-icon hsk">H</div>
+            </div>
+            <div>
+              <div class="yield-card-name">ETH / HSK</div>
+              <div class="yield-card-protocol">Leveraged LP</div>
+            </div>
+          </div>
+          <span class="yield-card-risk risk-med">Medium</span>
+        </div>
+        <div class="yield-card-body">
+          <div class="yield-data">
+            <div class="yield-data-label">Current APY</div>
+            <div class="yield-data-value green">26.7%</div>
+          </div>
+          <div class="yield-data">
+            <div class="yield-data-label">TVL</div>
+            <div class="yield-data-value">$980K</div>
+          </div>
+        </div>
+        <div class="yield-sparkline" data-values="15,30,25,45,55,50,65,60,75,80,85,90"></div>
+      </div>
+
+      <div class="yield-card reveal reveal-delay-3">
+        <div class="yield-card-header">
+          <div class="yield-card-pair">
+            <div class="yield-card-icons">
+              <div class="yield-card-icon btc">B</div>
+              <div class="yield-card-icon eth">E</div>
+            </div>
+            <div>
+              <div class="yield-card-name">BTC / ETH</div>
+              <div class="yield-card-protocol">Auto-Compound</div>
+            </div>
+          </div>
+          <span class="yield-card-risk risk-low">Low Risk</span>
+        </div>
+        <div class="yield-card-body">
+          <div class="yield-data">
+            <div class="yield-data-label">Current APY</div>
+            <div class="yield-data-value green">12.4%</div>
+          </div>
+          <div class="yield-data">
+            <div class="yield-data-label">TVL</div>
+            <div class="yield-data-value">$4.6M</div>
+          </div>
+        </div>
+        <div class="yield-sparkline" data-values="50,48,55,58,60,57,62,65,68,70,72,75"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Security -->
+<section class="security section-pad" id="security">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="badge">Security</span>
+      <h2>Built for <span class="gold-text">Paranoid People</span></h2>
+      <p>We assume everything will fail. Then we engineer so it cannot.</p>
+    </div>
+    <div class="security-grid">
+      <div class="security-card reveal reveal-delay-1">
+        <div class="security-icon">&#x1F512;</div>
+        <div>
+          <h3>Audited Smart Contracts</h3>
+          <p>Every vault and strategy router contract is formally verified and audited by independent security firms before deployment.</p>
+        </div>
+      </div>
+      <div class="security-card reveal reveal-delay-2">
+        <div class="security-icon">&#x1F6E1;</div>
+        <div>
+          <h3>Non-Custodial Architecture</h3>
+          <p>Your funds remain in on-chain vaults governed by immutable smart contracts. Meridian never holds your keys or controls withdrawals.</p>
+        </div>
+      </div>
+      <div class="security-card reveal reveal-delay-3">
+        <div class="security-icon">&#x23F1;</div>
+        <div>
+          <h3>Timelock Governance</h3>
+          <p>All strategy changes are subject to a 48-hour timelock with on-chain transparency, so users can exit before any parameter update.</p>
+        </div>
+      </div>
+      <div class="security-card reveal reveal-delay-4">
+        <div class="security-icon">&#x1F4CA;</div>
+        <div>
+          <h3>Real-Time Risk Monitoring</h3>
+          <p>Our ML engine continuously monitors protocol health, liquidity depth, and smart contract anomalies -- automatically de-risking when signals degrade.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="cta">
+  <div class="container">
+    <div class="cta-box reveal">
+      <h2>Stop Leaving Yield<br><span class="gold-text">On the Table</span></h2>
+      <p>Join the next generation of DeFi investors on HashKey Chain. One deposit. Institutional-grade returns. Zero complexity.</p>
+      <div class="cta-buttons">
+        <a href="#" class="btn btn-primary">Launch App</a>
+        <a href="https://github.com" class="btn btn-ghost" target="_blank">View on GitHub</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-left">
+        &copy; 2026 Meridian. Built for the HashKey Chain Horizon Hackathon.
+      </div>
+      <ul class="footer-links">
+        <li><a href="#">Docs</a></li>
+        <li><a href="#">GitHub</a></li>
+        <li><a href="https://dorahacks.io" target="_blank">DoraHacks</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  /* --------------------------------------------------------
+     NAVBAR SCROLL
+     -------------------------------------------------------- */
+  const navbar = document.getElementById('navbar');
+  let lastScroll = 0;
+
+  window.addEventListener('scroll', function() {
+    const y = window.scrollY;
+    navbar.classList.toggle('scrolled', y > 40);
+    lastScroll = y;
+  }, { passive: true });
+
+  /* --------------------------------------------------------
+     MOBILE NAV
+     -------------------------------------------------------- */
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.querySelector('.nav-links');
+
+  navToggle.addEventListener('click', function() {
+    const open = navLinks.style.display === 'flex';
+    navLinks.style.display = open ? 'none' : 'flex';
+    if (!open) {
+      navLinks.style.flexDirection = 'column';
+      navLinks.style.position = 'absolute';
+      navLinks.style.top = '72px';
+      navLinks.style.left = '0';
+      navLinks.style.right = '0';
+      navLinks.style.background = 'rgba(5,13,26,0.96)';
+      navLinks.style.padding = '24px';
+      navLinks.style.gap = '20px';
+      navLinks.style.backdropFilter = 'blur(20px)';
+    } else {
+      navLinks.removeAttribute('style');
+    }
+  });
+
+  /* --------------------------------------------------------
+     SCROLL REVEAL
+     -------------------------------------------------------- */
+  const revealEls = document.querySelectorAll('.reveal');
+
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  revealEls.forEach(function(el) { observer.observe(el); });
+
+  /* --------------------------------------------------------
+     ANIMATED COUNTERS (HERO STATS)
+     -------------------------------------------------------- */
+  function animateCounter(el, target, prefix, suffix, duration) {
+    var start = 0;
+    var startTime = null;
+
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      var progress = Math.min((timestamp - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var current = Math.floor(eased * target);
+      el.textContent = prefix + current.toLocaleString() + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  var statsObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        animateCounter(document.getElementById('statApy'), 18, '', '%', 1800);
+        animateCounter(document.getElementById('statTvl'), 18, '$', 'M', 2000);
+        animateCounter(document.getElementById('statStrategies'), 12, '', '', 1500);
+        statsObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+
+  statsObserver.observe(document.querySelector('.hero-stats'));
+
+  /* --------------------------------------------------------
+     YIELD CHART (CANVAS)
+     -------------------------------------------------------- */
+  var canvas = document.getElementById('yieldChart');
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var chartAnimProgress = 0;
+  var chartAnimId = null;
+
+  function resizeCanvas() {
+    var wrapper = canvas.parentElement;
+    var w = wrapper.clientWidth;
+    var h = wrapper.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  // Generate smooth yield curve data
+  function generateCurve(points, volatility, trend) {
+    var data = [];
+    var val = 50 + Math.random() * 20;
+    for (var i = 0; i < points; i++) {
+      val += (Math.random() - 0.45) * volatility + trend;
+      val = Math.max(10, Math.min(95, val));
+      data.push(val);
+    }
+    return data;
+  }
+
+  var meridianData = generateCurve(60, 3, 0.35);
+  var marketData = generateCurve(60, 2.5, 0.15);
+
+  // Ensure meridian outperforms
+  for (var i = 0; i < meridianData.length; i++) {
+    if (meridianData[i] < marketData[i] + 5) {
+      meridianData[i] = marketData[i] + 5 + Math.random() * 8;
+    }
+  }
+
+  function drawLine(data, color, width, progress) {
+    var w = canvas.width / dpr;
+    var h = canvas.height / dpr;
+    var pad = 8;
+    var drawW = w - pad * 2;
+    var drawH = h - pad * 2;
+    var step = drawW / (data.length - 1);
+    var pointsToDraw = Math.floor(data.length * progress);
+    if (pointsToDraw < 2) return;
+
+    ctx.beginPath();
+    for (var i = 0; i < pointsToDraw; i++) {
+      var x = pad + i * step;
+      var y = pad + drawH - (data[i] / 100) * drawH;
+      if (i === 0) ctx.moveTo(x, y);
+      else {
+        var px = pad + (i - 1) * step;
+        var py = pad + drawH - (data[i - 1] / 100) * drawH;
+        var cpx = (px + x) / 2;
+        ctx.bezierCurveTo(cpx, py, cpx, y, x, y);
+      }
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // Gradient fill under the line
+    var lastX = pad + (pointsToDraw - 1) * step;
+    var lastY = pad + drawH - (data[pointsToDraw - 1] / 100) * drawH;
+    ctx.lineTo(lastX, h);
+    ctx.lineTo(pad, h);
+    ctx.closePath();
+    var grad = ctx.createLinearGradient(0, 0, 0, h);
+    if (color.indexOf('247') > -1 || color === 'rgba(247,147,26,1)') {
+      grad.addColorStop(0, 'rgba(247,147,26,0.15)');
+      grad.addColorStop(1, 'rgba(247,147,26,0)');
+    } else {
+      grad.addColorStop(0, 'rgba(255,255,255,0.03)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+    }
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Glowing dot at the end
+    if (progress >= 1 && color.indexOf('247') > -1) {
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(247,147,26,1)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(247,147,26,0.3)';
+      ctx.fill();
+    }
+  }
+
+  function drawGrid() {
+    var w = canvas.width / dpr;
+    var h = canvas.height / dpr;
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (var i = 0; i < 5; i++) {
+      var y = (h / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+  }
+
+  function renderChart(progress) {
+    var w = canvas.width / dpr;
+    var h = canvas.height / dpr;
+    ctx.clearRect(0, 0, w, h);
+    drawGrid();
+    drawLine(marketData, 'rgba(255,255,255,0.15)', 1.5, progress);
+    drawLine(meridianData, 'rgba(247,147,26,1)', 2.5, progress);
+  }
+
+  function animateChart() {
+    chartAnimProgress += 0.012;
+    if (chartAnimProgress > 1) chartAnimProgress = 1;
+    renderChart(chartAnimProgress);
+    if (chartAnimProgress < 1) {
+      chartAnimId = requestAnimationFrame(animateChart);
+    } else {
+      // Subtle live updates after animation
+      startLiveUpdates();
+    }
+  }
+
+  var liveInterval;
+  function startLiveUpdates() {
+    liveInterval = setInterval(function() {
+      // Shift data and add new point
+      meridianData.shift();
+      marketData.shift();
+      var lastM = meridianData[meridianData.length - 1];
+      var lastK = marketData[marketData.length - 1];
+      var newK = lastK + (Math.random() - 0.5) * 3;
+      newK = Math.max(10, Math.min(90, newK));
+      var newM = newK + 5 + Math.random() * 10;
+      newM = Math.max(20, Math.min(98, newM));
+      meridianData.push(newM);
+      marketData.push(newK);
+      renderChart(1);
+
+      // Update APY display
+      var apy = (15 + Math.random() * 6).toFixed(2);
+      document.getElementById('chartApy').textContent = apy + '%';
+    }, 2000);
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', function() {
+    resizeCanvas();
+    renderChart(chartAnimProgress);
+  });
+
+  // Start chart animation when visible
+  var chartObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting && chartAnimProgress === 0) {
+        animateChart();
+        chartObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.2 });
+
+  chartObserver.observe(canvas.parentElement);
+
+  /* --------------------------------------------------------
+     SPARKLINES IN YIELD CARDS
+     -------------------------------------------------------- */
+  document.querySelectorAll('.yield-sparkline').forEach(function(el) {
+    var values = el.getAttribute('data-values').split(',').map(Number);
+    values.forEach(function(v) {
+      var bar = document.createElement('div');
+      bar.className = 'yield-sparkline-bar';
+      bar.style.height = '0%';
+      el.appendChild(bar);
+      // Animate when visible
+      setTimeout(function() {
+        bar.style.height = v + '%';
+      }, 100 + Math.random() * 600);
+    });
+  });
+
+  /* --------------------------------------------------------
+     SOLUTION METRIC BARS
+     -------------------------------------------------------- */
+  var barObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.sol-metric-bar-fill').forEach(function(bar) {
+          var w = bar.getAttribute('data-width');
+          setTimeout(function() {
+            bar.style.width = w + '%';
+          }, 300);
+        });
+        barObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.solution-showcase').forEach(function(el) {
+    barObserver.observe(el);
+  });
+
+  /* --------------------------------------------------------
+     SMOOTH SCROLL FOR NAV
+     -------------------------------------------------------- */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Close mobile nav if open
+        if (window.innerWidth <= 768) {
+          navLinks.removeAttribute('style');
+        }
+      }
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
