@@ -287,6 +287,168 @@ function requireContracts(req, res, next) {
   next();
 }
 
+// ─── Seed / Demo Data ─────────────────────────────────────────────────────
+
+const SEED_STRATEGIES = [
+  {
+    index: 0,
+    name: "HSK Lending Optimizer",
+    address: "0x1a2B3c4D5e6F7890abCdeF1234567890aBcDeF01",
+    weightPercent: 40,
+    riskScore: 25,
+    active: true,
+    totalDeposited: "1200000000000000000000000",
+    totalProfit: "84000000000000000000000",
+    lastHarvest: new Date(Date.now() - 2 * 3600000).toISOString(),
+    apy: 18.4,
+    autoCompound: true,
+    protocol: "HashKey Lend",
+    description: "Optimized lending across HashKey Chain money markets with dynamic rate arbitrage.",
+  },
+  {
+    index: 1,
+    name: "Stable Yield Aggregator",
+    address: "0x2B3c4D5e6F7890abCdeF1234567890aBcDeF0123",
+    weightPercent: 35,
+    riskScore: 15,
+    active: true,
+    totalDeposited: "980000000000000000000000",
+    totalProfit: "53900000000000000000000",
+    lastHarvest: new Date(Date.now() - 4 * 3600000).toISOString(),
+    apy: 12.7,
+    autoCompound: true,
+    protocol: "StableSwap HSK",
+    description: "Low-risk stablecoin yield farming across verified HashKey Chain DEXs.",
+  },
+  {
+    index: 2,
+    name: "Delta Neutral LP",
+    address: "0x3c4D5e6F7890abCdeF1234567890aBcDeF012345",
+    weightPercent: 25,
+    riskScore: 45,
+    active: true,
+    totalDeposited: "720000000000000000000000",
+    totalProfit: "64800000000000000000000",
+    lastHarvest: new Date(Date.now() - 1 * 3600000).toISOString(),
+    apy: 24.1,
+    autoCompound: false,
+    protocol: "MeridianSwap",
+    description: "Delta-neutral liquidity provision with automated hedging on HashKey Chain.",
+  },
+];
+
+const SEED_VAULT = {
+  totalAssets: "2900000000000000000000000",
+  totalSupply: "2750000000000000000000000",
+  pricePerShare: "1054545454545454545",
+  idleAssets: "145000000000000000000000",
+  deployedAssets: "2755000000000000000000000",
+  managementFeeBps: 200,
+  performanceFeeBps: 2000,
+  highWaterMark: "1054545454545454545",
+  totalProfitAccrued: "202700000000000000000000",
+  lastHarvestProfit: "12400000000000000000000",
+  emergencyMode: false,
+  depositLimit: "10000000000000000000000000",
+};
+
+const SEED_HARVESTS = [
+  { profit: "12400000000000000000000", performanceFee: "2480000000000000000000", timestamp: Math.floor(Date.now() / 1000) - 3600, blockNumber: 1847293, txHash: "0xabc123...def456" },
+  { profit: "8700000000000000000000", performanceFee: "1740000000000000000000", timestamp: Math.floor(Date.now() / 1000) - 7200, blockNumber: 1847100, txHash: "0xdef789...abc012" },
+  { profit: "15200000000000000000000", performanceFee: "3040000000000000000000", timestamp: Math.floor(Date.now() / 1000) - 14400, blockNumber: 1846800, txHash: "0x123abc...456def" },
+  { profit: "6300000000000000000000", performanceFee: "1260000000000000000000", timestamp: Math.floor(Date.now() / 1000) - 28800, blockNumber: 1846200, txHash: "0x456def...789abc" },
+  { profit: "19800000000000000000000", performanceFee: "3960000000000000000000", timestamp: Math.floor(Date.now() / 1000) - 43200, blockNumber: 1845600, txHash: "0x789abc...012def" },
+  { profit: "11100000000000000000000", performanceFee: "2220000000000000000000", timestamp: Math.floor(Date.now() / 1000) - 86400, blockNumber: 1844400, txHash: "0x012def...345abc" },
+];
+
+const SEED_YIELD_HISTORY = Array.from({ length: 30 }, (_, i) => ({
+  date: new Date(Date.now() - (29 - i) * 86400000).toISOString().split("T")[0],
+  apy: 14.2 + Math.sin(i * 0.3) * 4 + Math.random() * 2,
+  tvl: 2500000 + i * 15000 + Math.random() * 50000,
+  profit: 5000 + Math.random() * 3000 + i * 200,
+}));
+
+// ─── Demo endpoints (fallback when contracts not deployed) ────────────────
+
+app.get("/api/demo/vault", (_req, res) => res.json(SEED_VAULT));
+
+app.get("/api/demo/strategies", (_req, res) => {
+  res.json({
+    totalStrategies: SEED_STRATEGIES.length,
+    activeStrategies: SEED_STRATEGIES.filter((s) => s.active).length,
+    totalDeployedAssets: SEED_VAULT.deployedAssets,
+    needsRebalance: false,
+    strategies: SEED_STRATEGIES,
+  });
+});
+
+app.get("/api/demo/yield", (_req, res) => {
+  const strategyYields = SEED_STRATEGIES.map((s) => ({
+    address: s.address,
+    name: s.name,
+    weight: s.weightPercent,
+    riskScore: s.riskScore,
+    deposited: s.totalDeposited,
+    profit: s.totalProfit,
+    roiPercent: Math.round((Number(s.totalProfit) / Number(s.totalDeposited)) * 10000) / 100,
+    lastHarvest: s.lastHarvest,
+    apy: s.apy,
+  }));
+  res.json({
+    totalAssets: SEED_VAULT.totalAssets,
+    totalProfit: SEED_VAULT.totalProfitAccrued,
+    overallROI: 6.99,
+    strategies: strategyYields,
+  });
+});
+
+app.get("/api/demo/harvests", (_req, res) => {
+  res.json({ count: SEED_HARVESTS.length, harvests: SEED_HARVESTS });
+});
+
+app.get("/api/demo/risk", (_req, res) => {
+  const parsed = SEED_STRATEGIES.map((s) => ({
+    addr: s.address,
+    weight: s.weightPercent * 100,
+    riskScore: s.riskScore,
+    active: s.active,
+    totalDeposited: Number(s.totalDeposited) / 1e18,
+    totalProfit: Number(s.totalProfit) / 1e18,
+  }));
+  const metrics = computeRiskMetrics(parsed);
+  res.json({ ...metrics, strategyCount: SEED_STRATEGIES.length, activeCount: SEED_STRATEGIES.filter((s) => s.active).length, timestamp: Date.now() });
+});
+
+app.get("/api/demo/recommendations", (req, res) => {
+  const riskTolerance = req.query.risk || "moderate";
+  const parsed = SEED_STRATEGIES.map((s) => ({
+    addr: s.address,
+    weight: s.weightPercent * 100,
+    riskScore: s.riskScore,
+    active: s.active,
+    totalDeposited: Number(s.totalDeposited) / 1e18,
+    totalProfit: Number(s.totalProfit) / 1e18,
+    lastHarvest: Math.floor(new Date(s.lastHarvest).getTime() / 1000),
+  }));
+  const recommendations = generateRecommendations(parsed, riskTolerance);
+  res.json({ riskTolerance, needsRebalance: false, recommendations, analysisTimestamp: Date.now() });
+});
+
+app.get("/api/demo/history", (_req, res) => {
+  res.json({ count: SEED_YIELD_HISTORY.length, snapshots: SEED_YIELD_HISTORY });
+});
+
+app.get("/api/demo/portfolio/:address", (req, res) => {
+  res.json({
+    user: req.params.address,
+    shares: "145000000000000000000000",
+    estimatedAssets: "152886000000000000000000",
+    pricePerShare: SEED_VAULT.pricePerShare,
+    portfolioSharePercent: 5.27,
+    maxDeposit: "7100000000000000000000000",
+  });
+});
+
 // ─── Routes ──────────────────────────────────────────────────────────────
 
 // Health

@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian | AI-Powered DeFi Yield Optimization</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg-primary:#0a1628;--bg-secondary:#0f1d32;--bg-card:#132238;--bg-card-hover:#17293f;
+    --border:#1e3a5f;--border-light:#2a4a6b;
+    --text-primary:#e8edf5;--text-secondary:#8899aa;--text-muted:#5a6a7a;
+    --gold:#f7931a;--gold-light:#ffd700;--gold-dim:#c47a15;
+    --green:#00d68f;--red:#ff4d6a;--blue:#3b82f6;--purple:#a855f7;--cyan:#22d3ee;
+    --gradient-gold:linear-gradient(135deg,#f7931a,#ffd700);
+    --gradient-blue:linear-gradient(135deg,#1e3a5f,#3b82f6);
+    --shadow:0 4px 24px rgba(0,0,0,0.4);
+    --radius:12px;--radius-sm:8px;
+    --sidebar-w:260px;
+    --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+  html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg-primary);color:var(--text-primary)}
+  ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg-secondary)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+  /* ── Layout ── */
+  .app{display:flex;height:100vh;width:100vw}
+  .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg-secondary);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+  .main{flex:1;overflow-y:auto;padding:28px 32px}
+
+  /* ── Sidebar ── */
+  .logo{padding:24px 20px;border-bottom:1px solid var(--border)}
+  .logo h1{font-size:22px;font-weight:800;background:var(--gradient-gold);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .logo span{font-size:11px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;display:block;margin-top:2px}
+  .nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;color:var(--text-secondary);font-size:14px;font-weight:500;border:none;background:none;width:100%;text-align:left}
+  .nav-item:hover{background:var(--bg-card);color:var(--text-primary)}
+  .nav-item.active{background:rgba(247,147,26,0.12);color:var(--gold);border-left:3px solid var(--gold)}
+  .nav-icon{font-size:18px;width:24px;text-align:center}
+  .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:12px}
+  .chain-badge{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(0,214,143,0.08);border:1px solid rgba(0,214,143,0.2);border-radius:var(--radius-sm)}
+  .chain-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+  /* ── Tab panels ── */
+  .tab-panel{display:none}.tab-panel.active{display:block}
+
+  /* ── Header ── */
+  .page-header{margin-bottom:28px}
+  .page-header h2{font-size:26px;font-weight:700;margin-bottom:4px}
+  .page-header p{color:var(--text-secondary);font-size:14px}
+
+  /* ── Cards ── */
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;transition:all .25s}
+  .card:hover{border-color:var(--border-light);background:var(--bg-card-hover)}
+  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .card-title{font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);font-weight:600}
+  .card-badge{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600}
+
+  /* ── Stats grid ── */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .stat-card{position:relative;overflow:hidden}
+  .stat-card .stat-icon{position:absolute;top:16px;right:16px;font-size:28px;opacity:.15}
+  .stat-value{font-size:32px;font-weight:800;line-height:1.1;margin-bottom:4px}
+  .stat-value.gold{background:var(--gradient-gold);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .stat-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+  .stat-change{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;margin-top:8px;padding:3px 8px;border-radius:4px}
+  .stat-change.up{color:var(--green);background:rgba(0,214,143,0.1)}
+  .stat-change.down{color:var(--red);background:rgba(255,77,106,0.1)}
+
+  /* ── Content grids ── */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:24px}
+  .grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:24px}
+  .grid-1-2{display:grid;grid-template-columns:1fr 2fr;gap:20px;margin-bottom:24px}
+
+  /* ── Gauge ── */
+  .gauge-container{display:flex;flex-direction:column;align-items:center;padding:20px 0}
+  .gauge{position:relative;width:180px;height:90px;overflow:hidden}
+  .gauge-bg{width:180px;height:90px;border-radius:90px 90px 0 0;background:var(--bg-secondary);border:3px solid var(--border)}
+  .gauge-fill{position:absolute;bottom:0;left:0;width:180px;height:90px;border-radius:90px 90px 0 0;transform-origin:bottom center;transition:transform .8s cubic-bezier(.4,0,.2,1)}
+  .gauge-cover{position:absolute;bottom:0;left:12px;width:156px;height:78px;border-radius:78px 78px 0 0;background:var(--bg-card)}
+  .gauge-value{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:28px;font-weight:800}
+  .gauge-label{margin-top:12px;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+
+  /* ── Bars ── */
+  .bar-chart{display:flex;flex-direction:column;gap:12px}
+  .bar-row{display:flex;align-items:center;gap:12px}
+  .bar-label{width:140px;font-size:13px;font-weight:500;color:var(--text-secondary);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-track{flex:1;height:28px;background:var(--bg-secondary);border-radius:6px;overflow:hidden;position:relative}
+  .bar-fill{height:100%;border-radius:6px;transition:width .8s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:600;color:var(--bg-primary)}
+  .bar-value{margin-left:12px;font-size:13px;font-weight:600;min-width:60px;text-align:right}
+
+  /* ── Feed ── */
+  .feed{display:flex;flex-direction:column;gap:12px;max-height:360px;overflow-y:auto}
+  .feed-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:var(--bg-secondary);border-radius:var(--radius-sm);border-left:3px solid var(--gold)}
+  .feed-icon{font-size:20px;margin-top:2px}
+  .feed-content{flex:1}
+  .feed-title{font-size:13px;font-weight:600;margin-bottom:2px}
+  .feed-meta{font-size:11px;color:var(--text-muted)}
+  .feed-amount{font-size:14px;font-weight:700;color:var(--green);white-space:nowrap}
+
+  /* ── Strategy cards ── */
+  .strategy-card{position:relative;overflow:hidden}
+  .strategy-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+  .strategy-card.risk-low::before{background:var(--green)}
+  .strategy-card.risk-med::before{background:var(--gold)}
+  .strategy-card.risk-high::before{background:var(--red)}
+  .strategy-name{font-size:16px;font-weight:700;margin-bottom:4px}
+  .strategy-protocol{font-size:12px;color:var(--text-muted);margin-bottom:16px}
+  .strategy-metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .strategy-metric{padding:10px;background:var(--bg-secondary);border-radius:var(--radius-sm)}
+  .strategy-metric-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:4px}
+  .strategy-metric-value{font-size:18px;font-weight:700}
+  .strategy-tags{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .tag{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600}
+  .tag-green{color:var(--green);background:rgba(0,214,143,0.1);border:1px solid rgba(0,214,143,0.2)}
+  .tag-gold{color:var(--gold);background:rgba(247,147,26,0.1);border:1px solid rgba(247,147,26,0.2)}
+  .tag-red{color:var(--red);background:rgba(255,77,106,0.1);border:1px solid rgba(255,77,106,0.2)}
+  .tag-blue{color:var(--blue);background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2)}
+
+  /* ── Forms ── */
+  .form-group{margin-bottom:16px}
+  .form-group label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:8px;font-weight:600}
+  .form-input{width:100%;padding:12px 16px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:14px;font-family:var(--font);transition:border-color .2s}
+  .form-input:focus{outline:none;border-color:var(--gold)}
+  .btn{padding:12px 24px;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:var(--font)}
+  .btn-gold{background:var(--gradient-gold);color:var(--bg-primary)}
+  .btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(247,147,26,0.3)}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-primary)}
+  .btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+  .btn-danger{background:rgba(255,77,106,0.15);border:1px solid rgba(255,77,106,0.3);color:var(--red)}
+  .btn-danger:hover{background:rgba(255,77,106,0.25)}
+  .btn-block{width:100%}
+  .btn-group{display:flex;gap:10px}
+
+  /* ── Table ── */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:600;padding:12px 16px;text-align:left;border-bottom:1px solid var(--border)}
+  td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(30,58,95,0.4)}
+  tr:hover td{background:rgba(255,255,255,0.02)}
+
+  /* ── Chart (CSS-based sparklines) ── */
+  .sparkline{display:flex;align-items:flex-end;gap:2px;height:60px;padding:4px 0}
+  .spark-bar{flex:1;background:var(--gradient-gold);border-radius:2px 2px 0 0;min-width:3px;transition:height .5s cubic-bezier(.4,0,.2,1);opacity:.7}
+  .spark-bar:hover{opacity:1}
+
+  .mini-chart{display:flex;align-items:flex-end;gap:3px;height:120px;padding:8px 0}
+  .mini-bar{flex:1;border-radius:3px 3px 0 0;min-width:8px;transition:height .6s cubic-bezier(.4,0,.2,1);position:relative;cursor:pointer}
+  .mini-bar:hover{opacity:.85}
+  .mini-bar .tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--bg-primary);border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-size:11px;white-space:nowrap;z-index:10;pointer-events:none}
+  .mini-bar:hover .tooltip{display:block}
+
+  /* ── Donut (CSS) ── */
+  .donut-chart{position:relative;width:180px;height:180px;margin:0 auto}
+  .donut-chart svg{transform:rotate(-90deg)}
+  .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+  .donut-center .value{font-size:24px;font-weight:800;display:block}
+  .donut-center .label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+  .donut-legend{display:flex;flex-direction:column;gap:8px;margin-top:20px}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:13px}
+  .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+  /* ── Risk meter ── */
+  .risk-meter{display:flex;gap:3px;margin:8px 0}
+  .risk-segment{flex:1;height:6px;border-radius:3px;background:var(--bg-secondary)}
+  .risk-segment.filled-green{background:var(--green)}
+  .risk-segment.filled-gold{background:var(--gold)}
+  .risk-segment.filled-red{background:var(--red)}
+
+  /* ── Settings ── */
+  .setting-row{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border)}
+  .setting-label{font-size:14px;font-weight:500}
+  .setting-desc{font-size:12px;color:var(--text-muted);margin-top:2px}
+  .toggle{width:48px;height:26px;border-radius:13px;background:var(--bg-secondary);border:1px solid var(--border);cursor:pointer;position:relative;transition:all .2s}
+  .toggle.on{background:rgba(247,147,26,0.3);border-color:var(--gold)}
+  .toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--text-secondary);transition:all .2s}
+  .toggle.on::after{left:25px;background:var(--gold)}
+  .select-styled{padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:13px;font-family:var(--font);cursor:pointer}
+  .select-styled:focus{outline:none;border-color:var(--gold)}
+
+  /* ── Notification toast ── */
+  .toast{position:fixed;top:20px;right:20px;padding:14px 20px;background:var(--bg-card);border:1px solid var(--gold);border-radius:var(--radius-sm);font-size:13px;font-weight:500;z-index:1000;transform:translateX(120%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:var(--shadow)}
+  .toast.show{transform:translateX(0)}
+
+  /* ── Animations ── */
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .animate-in{animation:fadeInUp .4s ease-out forwards}
+  .delay-1{animation-delay:.1s;opacity:0}.delay-2{animation-delay:.2s;opacity:0}.delay-3{animation-delay:.3s;opacity:0}.delay-4{animation-delay:.4s;opacity:0}
+
+  /* ── Responsive ── */
+  @media(max-width:1200px){.stats-grid{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr}}
+  @media(max-width:900px){.sidebar{display:none}.main{padding:16px}.grid-2,.grid-2-1,.grid-1-2{grid-template-columns:1fr}}
+
+  /* ── Mono numbers ── */
+  .mono{font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>MERIDIAN</h1>
+      <span>Yield Intelligence</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-tab="dashboard"><span class="nav-icon">&#x1F3E0;</span> Dashboard</button>
+      <button class="nav-item" data-tab="vaults"><span class="nav-icon">&#x1F4B0;</span> Vaults</button>
+      <button class="nav-item" data-tab="strategies"><span class="nav-icon">&#x1F4CA;</span> Strategies</button>
+      <button class="nav-item" data-tab="analytics"><span class="nav-icon">&#x1F50D;</span> Analytics</button>
+      <button class="nav-item" data-tab="settings"><span class="nav-icon">&#x2699;&#xFE0F;</span> Settings</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="chain-badge">
+        <span class="chain-dot"></span>
+        <div>
+          <div style="font-weight:600;color:var(--text-primary)">HashKey Chain</div>
+          <div style="font-size:10px;color:var(--text-muted)">Testnet</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section id="tab-dashboard" class="tab-panel active">
+      <div class="page-header animate-in">
+        <h2>Portfolio Dashboard</h2>
+        <p>Real-time overview of your Meridian yield positions</p>
+      </div>
+
+      <div class="stats-grid" id="dashboard-stats">
+        <div class="card stat-card animate-in delay-1">
+          <span class="stat-icon">&#x1F4B0;</span>
+          <div class="stat-label">Total Deposited</div>
+          <div class="stat-value gold mono" id="stat-tvl">--</div>
+          <span class="stat-change up">&#x25B2; 4.2% 7d</span>
+        </div>
+        <div class="card stat-card animate-in delay-2">
+          <span class="stat-icon">&#x1F4C8;</span>
+          <div class="stat-label">Blended APY</div>
+          <div class="stat-value mono" id="stat-apy" style="color:var(--green)">--</div>
+          <span class="stat-change up">&#x25B2; 1.8% vs last week</span>
+        </div>
+        <div class="card stat-card animate-in delay-3">
+          <span class="stat-icon">&#x2728;</span>
+          <div class="stat-label">Yield Earned</div>
+          <div class="stat-value mono" id="stat-yield" style="color:var(--cyan)">--</div>
+          <span class="stat-change up">&#x25B2; 12.4k last harvest</span>
+        </div>
+        <div class="card stat-card animate-in delay-4">
+          <span class="stat-icon">&#x1F6E1;</span>
+          <div class="stat-label">Risk Score</div>
+          <div class="stat-value mono" id="stat-risk">--</div>
+          <div class="risk-meter" id="risk-meter-dash"></div>
+        </div>
+      </div>
+
+      <div class="grid-2-1">
+        <div class="card animate-in delay-2">
+          <div class="card-header">
+            <span class="card-title">Strategy Performance</span>
+            <span class="card-badge tag-green">Live</span>
+          </div>
+          <div class="bar-chart" id="strategy-bars"></div>
+        </div>
+        <div class="card animate-in delay-3">
+          <div class="card-header">
+            <span class="card-title">Vault Health</span>
+          </div>
+          <div class="gauge-container">
+            <div class="gauge">
+              <div class="gauge-bg"></div>
+              <div class="gauge-fill" id="gauge-fill" style="background:var(--gradient-gold)"></div>
+              <div class="gauge-cover"></div>
+              <div class="gauge-value mono" id="gauge-value">--%</div>
+            </div>
+            <div class="gauge-label">Capital Utilization</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:12px 0;margin-top:8px;border-top:1px solid var(--border)">
+            <div style="text-align:center"><div style="font-size:11px;color:var(--text-muted)">IDLE</div><div class="mono" style="font-weight:700;color:var(--gold)" id="dash-idle">--</div></div>
+            <div style="text-align:center"><div style="font-size:11px;color:var(--text-muted)">DEPLOYED</div><div class="mono" style="font-weight:700;color:var(--green)" id="dash-deployed">--</div></div>
+            <div style="text-align:center"><div style="font-size:11px;color:var(--text-muted)">EMERGENCY</div><div class="mono" style="font-weight:700" id="dash-emergency">--</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card animate-in delay-3">
+          <div class="card-header">
+            <span class="card-title">Yield History (30d)</span>
+          </div>
+          <div class="mini-chart" id="yield-chart"></div>
+        </div>
+        <div class="card animate-in delay-4">
+          <div class="card-header">
+            <span class="card-title">Recent Harvests</span>
+            <span class="card-badge tag-gold">Auto</span>
+          </div>
+          <div class="feed" id="harvest-feed"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VAULTS ============ -->
+    <section id="tab-vaults" class="tab-panel">
+      <div class="page-header">
+        <h2>Vault Operations</h2>
+        <p>Deposit, withdraw, and monitor your vault positions</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="card stat-card">
+          <div class="stat-label">Total Assets</div>
+          <div class="stat-value gold mono" id="vault-total-assets">--</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">Share Price</div>
+          <div class="stat-value mono" id="vault-share-price" style="color:var(--green)">--</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">Total Supply</div>
+          <div class="stat-value mono" id="vault-supply">--</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">Deposit Limit</div>
+          <div class="stat-value mono" id="vault-dep-limit" style="color:var(--cyan)">--</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Deposit</span>
+            <span class="card-badge tag-green">Active</span>
+          </div>
+          <div class="form-group">
+            <label>Amount (HSK)</label>
+            <input type="number" class="form-input" id="deposit-amount" placeholder="0.00" step="0.01">
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <button class="btn btn-outline" style="flex:1" onclick="setPercent('deposit',25)">25%</button>
+            <button class="btn btn-outline" style="flex:1" onclick="setPercent('deposit',50)">50%</button>
+            <button class="btn btn-outline" style="flex:1" onclick="setPercent('deposit',75)">75%</button>
+            <button class="btn btn-outline" style="flex:1" onclick="setPercent('deposit',100)">MAX</button>
+          </div>
+          <div style="padding:12px;background:var(--bg-secondary);border-radius:var(--radius-sm);margin-bottom:16px;font-size:12px;color:var(--text-muted)">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>Estimated Shares</span><span class="mono" id="est-shares">0.00</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>Management Fee</span><span class="mono">2.00%</span></div>
+            <div style="display:flex;justify-content:space-between"><span>Performance Fee</span><span class="mono">20.00%</span></div>
+          </div>
+          <button class="btn btn-gold btn-block" onclick="showToast('Deposit submitted to HashKey Chain')">Deposit</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Withdraw</span>
+          </div>
+          <div class="form-group">
+            <label>Shares to Redeem</label>
+            <input type="number" class="form-input" id="withdraw-amount" placeholder="0.00" step="0.01">
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <button class="btn btn-outline" style="flex:1" onclick="setPercent('withdraw',25)">25%</button>
+            <button class="btn btn-outline" style="flex:1" onclick="setPercent('withdraw',50)">50%</button>
+            <button class="btn btn-outline" style="flex:1" onclick="setPercent('withdraw',75)">75%</button>
+            <button class="btn btn-outline" style="flex:1" onclick="setPercent('withdraw',100)">MAX</button>
+          </div>
+          <div style="padding:12px;background:var(--bg-secondary);border-radius:var(--radius-sm);margin-bottom:16px;font-size:12px;color:var(--text-muted)">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>Estimated Assets</span><span class="mono" id="est-assets">0.00 HSK</span></div>
+            <div style="display:flex;justify-content:space-between"><span>Current Price/Share</span><span class="mono" id="withdraw-pps">1.054 HSK</span></div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-outline" style="flex:1" onclick="showToast('Withdrawal submitted')">Withdraw</button>
+            <button class="btn btn-danger" style="flex:1" onclick="showToast('Emergency withdrawal requires on-chain confirmation')">Emergency Exit</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="card-header">
+          <span class="card-title">Vault Configuration</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Parameter</th><th>Value</th><th>Status</th></tr></thead>
+            <tbody id="vault-config-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="card-header">
+          <span class="card-title">Deposit History</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Time</th><th>Type</th><th>Amount</th><th>Shares</th><th>Tx Hash</th></tr></thead>
+            <tbody id="deposit-history"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STRATEGIES ============ -->
+    <section id="tab-strategies" class="tab-panel">
+      <div class="page-header">
+        <h2>Strategy Manager</h2>
+        <p>AI-optimized yield strategies on HashKey Chain</p>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="card stat-card">
+          <div class="stat-label">Active Strategies</div>
+          <div class="stat-value gold mono" id="strat-active-count">--</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">Total Deployed</div>
+          <div class="stat-value mono" style="color:var(--green)" id="strat-total-deployed">--</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">Rebalance Status</div>
+          <div class="stat-value mono" id="strat-rebalance" style="font-size:18px">--</div>
+        </div>
+      </div>
+
+      <div class="grid-3" id="strategy-cards"></div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">AI Recommendations</span>
+          <span class="card-badge tag-blue">&#x1F916; AI Engine</span>
+        </div>
+        <div id="recommendations-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ ANALYTICS ============ -->
+    <section id="tab-analytics" class="tab-panel">
+      <div class="page-header">
+        <h2>Analytics &amp; Risk</h2>
+        <p>Deep portfolio analytics and risk intelligence</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="card stat-card">
+          <div class="stat-label">Sharpe Ratio</div>
+          <div class="stat-value mono" id="ana-sharpe" style="color:var(--cyan)">--</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">Max Drawdown</div>
+          <div class="stat-value mono" id="ana-drawdown" style="color:var(--red)">--</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">Diversification</div>
+          <div class="stat-value mono" id="ana-diversification" style="color:var(--green)">--</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">Concentration Risk</div>
+          <div class="stat-value mono" id="ana-concentration" style="font-size:20px">--</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Yield Over Time</span>
+          </div>
+          <div class="mini-chart" id="analytics-yield-chart" style="height:160px"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text-muted)">
+            <span>30 days ago</span><span>Today</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Portfolio Diversification</span>
+          </div>
+          <div class="donut-chart" id="donut-chart">
+            <svg viewBox="0 0 180 180" width="180" height="180">
+              <circle cx="90" cy="90" r="70" fill="none" stroke="var(--bg-secondary)" stroke-width="20"/>
+              <circle id="donut-s1" cx="90" cy="90" r="70" fill="none" stroke="var(--gold)" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"/>
+              <circle id="donut-s2" cx="90" cy="90" r="70" fill="none" stroke="var(--green)" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"/>
+              <circle id="donut-s3" cx="90" cy="90" r="70" fill="none" stroke="var(--blue)" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"/>
+            </svg>
+            <div class="donut-center">
+              <span class="value" id="donut-total">3</span>
+              <span class="label">Strategies</span>
+            </div>
+          </div>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Strategy Comparison</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Strategy</th><th>APY</th><th>Risk</th><th>ROI</th><th>Weight</th></tr></thead>
+              <tbody id="comparison-table"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Risk Breakdown</span>
+          </div>
+          <div class="bar-chart" id="risk-bars"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">TVL Trend (30d)</span>
+        </div>
+        <div class="mini-chart" id="tvl-chart" style="height:100px"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text-muted)">
+          <span>30 days ago</span><span>Today</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section id="tab-settings" class="tab-panel">
+      <div class="page-header">
+        <h2>Settings</h2>
+        <p>Configure your Meridian dashboard and preferences</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Connection</span></div>
+          <div class="form-group">
+            <label>Backend URL</label>
+            <input type="text" class="form-input" id="setting-backend-url" value="http://localhost:3001">
+          </div>
+          <div class="form-group">
+            <label>API Key (optional)</label>
+            <input type="password" class="form-input" id="setting-api-key" placeholder="Leave blank for dev mode">
+          </div>
+          <div class="form-group">
+            <label>Wallet Address</label>
+            <input type="text" class="form-input" id="setting-wallet" placeholder="0x...">
+          </div>
+          <button class="btn btn-gold" onclick="saveSettings()">Save Connection</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Preferences</span></div>
+          <div class="setting-row">
+            <div><div class="setting-label">Auto-refresh data</div><div class="setting-desc">Poll backend every 15 seconds</div></div>
+            <div class="toggle on" id="toggle-refresh" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Real-time WebSocket</div><div class="setting-desc">Live vault updates via WebSocket</div></div>
+            <div class="toggle" id="toggle-ws" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Risk Tolerance</div><div class="setting-desc">Affects AI recommendations</div></div>
+            <select class="select-styled" id="setting-risk-tolerance">
+              <option value="conservative">Conservative</option>
+              <option value="moderate" selected>Moderate</option>
+              <option value="aggressive">Aggressive</option>
+            </select>
+          </div>
+          <div class="setting-row" style="border-bottom:none">
+            <div><div class="setting-label">Data Source</div><div class="setting-desc">Demo mode or live contracts</div></div>
+            <select class="select-styled" id="setting-data-source">
+              <option value="demo" selected>Demo (Seed Data)</option>
+              <option value="live">Live (On-Chain)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="card-header"><span class="card-title">System Info</span></div>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr><td style="color:var(--text-muted)">Backend Status</td><td><span id="sys-health" class="mono">--</span></td></tr>
+              <tr><td style="color:var(--text-muted)">Chain</td><td class="mono">HashKey Chain (Testnet)</td></tr>
+              <tr><td style="color:var(--text-muted)">RPC</td><td class="mono" id="sys-rpc">--</td></tr>
+              <tr><td style="color:var(--text-muted)">Vault Contract</td><td class="mono" id="sys-vault">--</td></tr>
+              <tr><td style="color:var(--text-muted)">Uptime</td><td class="mono" id="sys-uptime">--</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Config ──────────────────────────────────────────────────────────────
+const CONFIG = {
+  backendUrl: localStorage.getItem('meridian_backend') || 'http://localhost:3001',
+  apiKey: localStorage.getItem('meridian_apikey') || '',
+  dataSource: localStorage.getItem('meridian_source') || 'demo',
+  refreshInterval: 15000,
+};
+
+let refreshTimer = null;
+
+// ─── API helpers ─────────────────────────────────────────────────────────
+function apiBase() {
+  const src = CONFIG.dataSource === 'live' ? '' : '/demo';
+  return CONFIG.backendUrl + '/api' + src;
+}
+
+async function apiFetch(path) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (CONFIG.apiKey) headers['x-api-key'] = CONFIG.apiKey;
+  try {
+    const r = await fetch(apiBase() + path, { headers });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  } catch (e) {
+    console.warn('[API]', path, e.message);
+    return null;
+  }
+}
+
+// ─── Formatting ──────────────────────────────────────────────────────────
+function fmtWei(wei, decimals = 2) {
+  const n = Number(wei) / 1e18;
+  if (n >= 1e6) return (n / 1e6).toFixed(decimals) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(decimals) + 'K';
+  return n.toFixed(decimals);
+}
+
+function fmtNum(n, d = 2) {
+  if (n >= 1e6) return (n / 1e6).toFixed(d) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(d) + 'K';
+  return Number(n).toFixed(d);
+}
+
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() / 1000) - ts);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  return Math.floor(s / 86400) + 'd ago';
+}
+
+// ─── Tab navigation ──────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ─── Toast ───────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── Dashboard ───────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const [vault, yield_, harvests, risk, history] = await Promise.all([
+    apiFetch('/vault'),
+    apiFetch('/yield'),
+    apiFetch('/harvests'),
+    apiFetch('/risk'),
+    apiFetch('/history'),
+  ]);
+
+  if (vault) {
+    document.getElementById('stat-tvl').textContent = '$' + fmtWei(vault.totalAssets);
+    document.getElementById('stat-yield').textContent = '$' + fmtWei(vault.totalProfitAccrued);
+
+    // Gauge: utilization
+    const total = Number(vault.totalAssets);
+    const deployed = Number(vault.deployedAssets);
+    const util = total > 0 ? (deployed / total) * 100 : 0;
+    const gaugeDeg = (util / 100) * 180;
+    document.getElementById('gauge-fill').style.transform = `rotate(${gaugeDeg - 180}deg)`;
+    document.getElementById('gauge-value').textContent = util.toFixed(1) + '%';
+    document.getElementById('dash-idle').textContent = fmtWei(vault.idleAssets);
+    document.getElementById('dash-deployed').textContent = fmtWei(vault.deployedAssets);
+    document.getElementById('dash-emergency').textContent = vault.emergencyMode ? 'ON' : 'OFF';
+    document.getElementById('dash-emergency').style.color = vault.emergencyMode ? 'var(--red)' : 'var(--green)';
+  }
+
+  if (yield_) {
+    // Blended APY from strategies
+    const strats = yield_.strategies || [];
+    const totalWeight = strats.reduce((s, st) => s + (st.weight || 0), 0);
+    const blendedApy = totalWeight > 0
+      ? strats.reduce((s, st) => s + (st.apy || st.roiPercent || 0) * (st.weight || 0), 0) / totalWeight
+      : 0;
+    document.getElementById('stat-apy').textContent = blendedApy.toFixed(1) + '%';
+
+    // Strategy bars
+    const barsHtml = strats.map(s => {
+      const apy = s.apy || s.roiPercent || 0;
+      const maxApy = 30;
+      const pct = Math.min((apy / maxApy) * 100, 100);
+      const color = s.riskScore < 20 ? 'var(--green)' : s.riskScore < 40 ? 'var(--gold)' : 'var(--red)';
+      return `<div class="bar-row">
+        <span class="bar-label">${s.name || s.address.slice(0,10) + '...'}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}">${apy.toFixed(1)}%</div></div>
+        <span class="bar-value mono" style="color:${color}">${s.weight}%</span>
+      </div>`;
+    }).join('');
+    document.getElementById('strategy-bars').innerHTML = barsHtml;
+  }
+
+  if (risk) {
+    document.getElementById('stat-risk').textContent = risk.portfolioRiskScore + '/100';
+    document.getElementById('stat-risk').style.color = risk.portfolioRiskScore < 30 ? 'var(--green)' : risk.portfolioRiskScore < 60 ? 'var(--gold)' : 'var(--red)';
+    // Risk meter
+    const filled = Math.ceil(risk.portfolioRiskScore / 10);
+    let meterHtml = '';
+    for (let i = 0; i < 10; i++) {
+      const cls = i < filled ? (i < 3 ? 'filled-green' : i < 6 ? 'filled-gold' : 'filled-red') : '';
+      meterHtml += `<div class="risk-segment ${cls}"></div>`;
+    }
+    document.getElementById('risk-meter-dash').innerHTML = meterHtml;
+  }
+
+  if (harvests && harvests.harvests) {
+    const feedHtml = harvests.harvests.slice(0, 6).map(h => `
+      <div class="feed-item">
+        <span class="feed-icon">&#x1F33E;</span>
+        <div class="feed-content">
+          <div class="feed-title">Harvest Executed</div>
+          <div class="feed-meta">${timeAgo(h.timestamp)} &middot; Block #${h.blockNumber}</div>
+        </div>
+        <div class="feed-amount">+${fmtWei(h.profit)} HSK</div>
+      </div>
+    `).join('');
+    document.getElementById('harvest-feed').innerHTML = feedHtml;
+  }
+
+  if (history && history.snapshots) {
+    renderMiniChart('yield-chart', history.snapshots.map(s => s.apy || s.profit || 0), 'var(--gold)', 'var(--gold-dim)');
+  }
+}
+
+// ─── Vaults ──────────────────────────────────────────────────────────────
+async function loadVaults() {
+  const vault = await apiFetch('/vault');
+  if (!vault) return;
+
+  document.getElementById('vault-total-assets').textContent = '$' + fmtWei(vault.totalAssets);
+  document.getElementById('vault-share-price').textContent = (Number(vault.pricePerShare) / 1e18).toFixed(4) + ' HSK';
+  document.getElementById('vault-supply').textContent = fmtWei(vault.totalSupply) + ' shares';
+  document.getElementById('vault-dep-limit').textContent = '$' + fmtWei(vault.depositLimit);
+  document.getElementById('withdraw-pps').textContent = (Number(vault.pricePerShare) / 1e18).toFixed(4) + ' HSK';
+
+  const configRows = [
+    ['Management Fee', vault.managementFeeBps / 100 + '%', '<span class="tag tag-green">Active</span>'],
+    ['Performance Fee', vault.performanceFeeBps / 100 + '%', '<span class="tag tag-green">Active</span>'],
+    ['High Water Mark', (Number(vault.highWaterMark) / 1e18).toFixed(4), '<span class="tag tag-blue">Tracking</span>'],
+    ['Emergency Mode', vault.emergencyMode ? 'ENABLED' : 'Disabled', vault.emergencyMode ? '<span class="tag tag-red">Alert</span>' : '<span class="tag tag-green">Normal</span>'],
+    ['Last Harvest Profit', fmtWei(vault.lastHarvestProfit) + ' HSK', '<span class="tag tag-gold">Recent</span>'],
+    ['Total Profit Accrued', fmtWei(vault.totalProfitAccrued) + ' HSK', '<span class="tag tag-green">Lifetime</span>'],
+  ];
+  document.getElementById('vault-config-table').innerHTML = configRows.map(r =>
+    `<tr><td style="color:var(--text-muted)">${r[0]}</td><td class="mono">${r[1]}</td><td>${r[2]}</td></tr>`
+  ).join('');
+
+  // Seed deposit history
+  const depHistory = [
+    { time: '2h ago', type: 'Deposit', amount: '50,000 HSK', shares: '47,413.8', tx: '0xabc...123' },
+    { time: '8h ago', type: 'Withdraw', amount: '12,000 HSK', shares: '11,381.7', tx: '0xdef...456' },
+    { time: '1d ago', type: 'Deposit', amount: '200,000 HSK', shares: '189,655.2', tx: '0x789...abc' },
+    { time: '2d ago', type: 'Deposit', amount: '85,000 HSK', shares: '80,603.5', tx: '0x012...def' },
+    { time: '3d ago', type: 'Compound', amount: '4,200 HSK', shares: '--', tx: '0x345...012' },
+  ];
+  document.getElementById('deposit-history').innerHTML = depHistory.map(d =>
+    `<tr><td class="mono" style="color:var(--text-muted)">${d.time}</td>
+     <td><span class="tag ${d.type === 'Deposit' ? 'tag-green' : d.type === 'Withdraw' ? 'tag-red' : 'tag-gold'}">${d.type}</span></td>
+     <td class="mono">${d.amount}</td><td class="mono">${d.shares}</td>
+     <td class="mono" style="color:var(--text-muted)">${d.tx}</td></tr>`
+  ).join('');
+}
+
+// ─── Strategies ──────────────────────────────────────────────────────────
+async function loadStrategies() {
+  const [strats, recs] = await Promise.all([
+    apiFetch('/strategies'),
+    apiFetch('/recommendations'),
+  ]);
+
+  if (strats) {
+    document.getElementById('strat-active-count').textContent = strats.activeStrategies;
+    document.getElementById('strat-total-deployed').textContent = '$' + fmtWei(strats.totalDeployedAssets);
+    document.getElementById('strat-rebalance').textContent = strats.needsRebalance ? 'REBALANCE NEEDED' : 'Balanced';
+    document.getElementById('strat-rebalance').style.color = strats.needsRebalance ? 'var(--red)' : 'var(--green)';
+
+    const cardsHtml = (strats.strategies || []).map(s => {
+      const riskClass = s.riskScore < 25 ? 'risk-low' : s.riskScore < 45 ? 'risk-med' : 'risk-high';
+      const riskColor = s.riskScore < 25 ? 'var(--green)' : s.riskScore < 45 ? 'var(--gold)' : 'var(--red)';
+      const apy = s.apy || (Number(s.totalProfit) / Number(s.totalDeposited) * 100 || 0);
+      return `<div class="card strategy-card ${riskClass}">
+        <div class="strategy-name">${s.name || 'Strategy #' + s.index}</div>
+        <div class="strategy-protocol">${s.protocol || s.address.slice(0, 16) + '...'}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">${s.description || ''}</div>
+        <div class="strategy-metrics">
+          <div class="strategy-metric">
+            <div class="strategy-metric-label">APY</div>
+            <div class="strategy-metric-value" style="color:var(--green)">${apy.toFixed(1)}%</div>
+          </div>
+          <div class="strategy-metric">
+            <div class="strategy-metric-label">Allocation</div>
+            <div class="strategy-metric-value" style="color:var(--gold)">${s.weightPercent || s.weight}%</div>
+          </div>
+          <div class="strategy-metric">
+            <div class="strategy-metric-label">Risk Score</div>
+            <div class="strategy-metric-value" style="color:${riskColor}">${s.riskScore}/100</div>
+          </div>
+          <div class="strategy-metric">
+            <div class="strategy-metric-label">Deposited</div>
+            <div class="strategy-metric-value mono">${fmtWei(s.totalDeposited)}</div>
+          </div>
+        </div>
+        <div class="strategy-tags">
+          ${s.active ? '<span class="tag tag-green">Active</span>' : '<span class="tag tag-red">Inactive</span>'}
+          ${s.autoCompound ? '<span class="tag tag-gold">Auto-Compound</span>' : '<span class="tag tag-blue">Manual</span>'}
+          <span class="tag tag-blue">${s.protocol || 'DeFi'}</span>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('strategy-cards').innerHTML = cardsHtml;
+  }
+
+  if (recs && recs.recommendations) {
+    const recsHtml = recs.recommendations.length === 0
+      ? '<div style="padding:20px;text-align:center;color:var(--text-muted)">All strategies are performing within optimal parameters.</div>'
+      : recs.recommendations.map(r => {
+        const urgColor = r.urgency === 'high' ? 'var(--red)' : r.urgency === 'medium' ? 'var(--gold)' : 'var(--green)';
+        const actionIcon = r.action === 'REDUCE_WEIGHT' ? '&#x26A0;' : r.action === 'INCREASE_WEIGHT' ? '&#x2B06;' : r.action === 'DIVERSIFY' ? '&#x1F310;' : '&#x1F504;';
+        return `<div style="display:flex;align-items:flex-start;gap:12px;padding:14px;margin-bottom:8px;background:var(--bg-secondary);border-radius:var(--radius-sm);border-left:3px solid ${urgColor}">
+          <span style="font-size:20px">${actionIcon}</span>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px;margin-bottom:4px">${r.action.replace(/_/g, ' ')}</div>
+            <div style="font-size:12px;color:var(--text-secondary)">${r.reason}</div>
+          </div>
+          <span class="tag" style="color:${urgColor};background:${urgColor}15;border:1px solid ${urgColor}30">${r.urgency}</span>
+        </div>`;
+      }).join('');
+    document.getElementById('recommendations-list').innerHTML = recsHtml;
+  }
+}
+
+// ─── Analytics ───────────────────────────────────────────────────────────
+async function loadAnalytics() {
+  const [risk, yield_, history] = await Promise.all([
+    apiFetch('/risk'),
+    apiFetch('/yield'),
+    apiFetch('/history'),
+  ]);
+
+  if (risk) {
+    document.getElementById('ana-sharpe').textContent = risk.sharpeEstimate.toFixed(2);
+    document.getElementById('ana-drawdown').textContent = risk.maxDrawdownEstimate.toFixed(1) + '%';
+    document.getElementById('ana-diversification').textContent = (risk.diversificationIndex * 100).toFixed(0) + '%';
+    document.getElementById('ana-concentration').textContent = risk.concentrationRisk;
+    document.getElementById('ana-concentration').style.color =
+      risk.concentrationRisk === 'Low' ? 'var(--green)' : risk.concentrationRisk === 'Medium' ? 'var(--gold)' : 'var(--red)';
+  }
+
+  if (yield_ && yield_.strategies) {
+    const strats = yield_.strategies;
+
+    // Comparison table
+    const compHtml = strats.map(s => {
+      const riskColor = s.riskScore < 25 ? 'var(--green)' : s.riskScore < 45 ? 'var(--gold)' : 'var(--red)';
+      return `<tr>
+        <td>${s.name || s.address.slice(0,12) + '...'}</td>
+        <td class="mono" style="color:var(--green)">${(s.apy || s.roiPercent).toFixed(1)}%</td>
+        <td><span style="color:${riskColor};font-weight:600">${s.riskScore}</span></td>
+        <td class="mono">${s.roiPercent.toFixed(2)}%</td>
+        <td class="mono" style="color:var(--gold)">${s.weight}%</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('comparison-table').innerHTML = compHtml;
+
+    // Risk bars
+    const riskBars = strats.map(s => {
+      const color = s.riskScore < 25 ? 'var(--green)' : s.riskScore < 45 ? 'var(--gold)' : 'var(--red)';
+      return `<div class="bar-row">
+        <span class="bar-label">${s.name || s.address.slice(0,10)}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${s.riskScore}%;background:${color}">${s.riskScore}</div></div>
+        <span class="bar-value mono" style="color:${color}">${s.riskScore}/100</span>
+      </div>`;
+    }).join('');
+    document.getElementById('risk-bars').innerHTML = riskBars;
+
+    // Donut chart
+    const circ = 2 * Math.PI * 70;
+    const totalW = strats.reduce((a, s) => a + s.weight, 0);
+    const colors = ['var(--gold)', 'var(--green)', 'var(--blue)', 'var(--purple)', 'var(--cyan)'];
+    let offset = 0;
+    strats.forEach((s, i) => {
+      const pct = s.weight / totalW;
+      const dashLen = pct * circ;
+      const el = document.getElementById('donut-s' + (i + 1));
+      if (el) {
+        el.setAttribute('stroke', colors[i % colors.length]);
+        el.setAttribute('stroke-dasharray', `${dashLen} ${circ - dashLen}`);
+        el.setAttribute('stroke-dashoffset', -offset);
+        offset += dashLen;
+      }
+    });
+
+    document.getElementById('donut-legend').innerHTML = strats.map((s, i) =>
+      `<div class="legend-item">
+        <div class="legend-dot" style="background:${colors[i]}"></div>
+        <span>${s.name || s.address.slice(0,10)}</span>
+        <span class="mono" style="margin-left:auto;color:var(--text-muted)">${s.weight}%</span>
+      </div>`
+    ).join('');
+  }
+
+  if (history && history.snapshots) {
+    renderMiniChart('analytics-yield-chart', history.snapshots.map(s => s.apy || 0), 'var(--cyan)', 'var(--blue)');
+    renderMiniChart('tvl-chart', history.snapshots.map(s => s.tvl || 0), 'var(--green)', 'var(--green)');
+  }
+}
+
+// ─── Settings ────────────────────────────────────────────────────────────
+async function loadHealth() {
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (CONFIG.apiKey) headers['x-api-key'] = CONFIG.apiKey;
+    const r = await fetch(CONFIG.backendUrl + '/api/health', { headers });
+    const h = await r.json();
+    document.getElementById('sys-health').innerHTML = '<span style="color:var(--green)">&#x25CF; Online</span>';
+    document.getElementById('sys-rpc').textContent = h.rpc || '--';
+    document.getElementById('sys-vault').textContent = h.vaultConfigured ? 'Configured' : 'Not Configured (Demo Mode)';
+    document.getElementById('sys-uptime').textContent = Math.floor(h.uptime || 0) + 's';
+  } catch {
+    document.getElementById('sys-health').innerHTML = '<span style="color:var(--red)">&#x25CF; Offline</span>';
+  }
+}
+
+function saveSettings() {
+  CONFIG.backendUrl = document.getElementById('setting-backend-url').value.replace(/\/$/, '');
+  CONFIG.apiKey = document.getElementById('setting-api-key').value;
+  CONFIG.dataSource = document.getElementById('setting-data-source').value;
+  localStorage.setItem('meridian_backend', CONFIG.backendUrl);
+  localStorage.setItem('meridian_apikey', CONFIG.apiKey);
+  localStorage.setItem('meridian_source', CONFIG.dataSource);
+  showToast('Settings saved. Refreshing data...');
+  loadAll();
+}
+
+function setPercent(type, pct) {
+  // Simulated wallet balance
+  const balance = type === 'deposit' ? 500000 : 145000;
+  document.getElementById(type + '-amount').value = (balance * pct / 100).toFixed(2);
+  if (type === 'deposit') {
+    document.getElementById('est-shares').textContent = ((balance * pct / 100) / 1.0545).toFixed(2);
+  } else {
+    document.getElementById('est-assets').textContent = ((balance * pct / 100) * 1.0545).toFixed(2) + ' HSK';
+  }
+}
+
+// ─── Mini chart renderer ─────────────────────────────────────────────────
+function renderMiniChart(containerId, data, colorTop, colorBase) {
+  const container = document.getElementById(containerId);
+  if (!container || data.length === 0) return;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  container.innerHTML = data.map((v, i) => {
+    const pct = ((v - min) / range) * 85 + 15;
+    const opacity = 0.4 + (pct / 100) * 0.6;
+    return `<div class="mini-bar" style="height:${pct}%;background:${colorTop};opacity:${opacity}">
+      <div class="tooltip">${typeof v === 'number' ? v.toFixed(2) : v}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Load all ────────────────────────────────────────────────────────────
+async function loadAll() {
+  // Restore settings UI
+  document.getElementById('setting-backend-url').value = CONFIG.backendUrl;
+  document.getElementById('setting-api-key').value = CONFIG.apiKey;
+  document.getElementById('setting-data-source').value = CONFIG.dataSource;
+
+  await Promise.all([
+    loadDashboard(),
+    loadVaults(),
+    loadStrategies(),
+    loadAnalytics(),
+    loadHealth(),
+  ]);
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────
+loadAll();
+
+// Auto-refresh
+refreshTimer = setInterval(() => {
+  if (document.getElementById('toggle-refresh').classList.contains('on')) {
+    loadAll();
+  }
+}, CONFIG.refreshInterval);
+</script>
+</body>
+</html>
